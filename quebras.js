@@ -383,15 +383,22 @@ const quebrasUI = (() => {
   const showAddQuebraPage = async () => {
     try {
       console.log('🔵 showAddQuebraPage iniciado');
+      alert('showAddQuebraPage foi chamado!');
+      
       const panelBody = document.querySelector('.panel-body');
       const panelHeader = document.querySelector('.panel-header');
       
+      console.log('panelBody:', panelBody);
+      console.log('panelHeader:', panelHeader);
+      
       if (!panelBody || !panelHeader) {
         console.error('❌ panelBody ou panelHeader não encontrado');
+        alert('ERRO: panelBody ou panelHeader não encontrado!');
         return;
       }
 
       console.log('✅ Elementos encontrados');
+      alert('Elementos encontrados, continuando...');
       
       // Atualizar título da página
       const pageTitle = document.querySelector('.page-title');
