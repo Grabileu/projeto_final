@@ -185,10 +185,20 @@ const ceasaUI = (() => {
       </div>
 
       <style>
+        /* Layout base: filtros à esquerda ocupando largura consistente */
+        [data-panel="ceasa-container"]{
+          display:flex;
+          gap:16px;
+          align-items:flex-start;
+          justify-content:flex-start;
+          width:100%;
+        }
+
         @media (max-width: 1024px) {
           #filtersCeasa {
             width: 280px;
           }
+          [data-panel="ceasa-container"]{gap:12px;}
         }
 
         @media (max-width: 768px) {
@@ -196,6 +206,7 @@ const ceasaUI = (() => {
             display: flex;
             flex-direction: column;
             height: auto;
+            gap:12px;
           }
 
           #filtersCeasa {
@@ -394,6 +405,11 @@ const ceasaUI = (() => {
   const renderLista = () => {
     const panel = document.querySelector('.panel-body');
     if (!panel) return;
+
+    // Garantir alinhamento à esquerda/ao topo nesta visão
+    panel.style.alignItems = 'flex-start';
+    panel.style.justifyContent = 'flex-start';
+    panel.style.width = '100%';
 
     // Renderizar a estrutura do filtro lateral
     panel.innerHTML = `<div data-panel="ceasa-container">${renderFiltro()}</div>`;

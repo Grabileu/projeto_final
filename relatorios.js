@@ -482,18 +482,18 @@ const relatóriosUI = (() => {
   };
 
   // Relatório: Faltas e Atestados (agrupado por data)
-  const renderRelatórioFaltasAtestados = () => {
+  const renderRelatórioFaltasAtestados = async () => {
     const panelBody = document.querySelector('.panel-body');
     document.querySelector('.page-title').textContent = 'Relatórios - Faltas e Atestados';
     const btnAction = document.getElementById('btnAction');
     if (btnAction) btnAction.style.display = 'none';
 
-    const faltas = FaltasManager.getFaltas ? FaltasManager.getFaltas() : [];
+    const faltas = await (FaltasManager.getFaltas ? FaltasManager.getFaltas() : []);
     const funcionarios = FuncionariosUI.getFuncionarios ? FuncionariosUI.getFuncionarios() : [];
     
     const nomesFuncionarios = Array.from(new Set(faltas.map(f => {
-      const func = funcionarios.find(fn => fn.id === f.funcionarioId);
-      return func ? func.nome : (f.funcionarioNome || 'Funcionário não encontrado');
+      const func = funcionarios.find(fn => fn.id === f.funcionario_id || fn.id === f.funcionarioId);
+      return func ? func.nome : (f.funcionario_nome || f.funcionarioNome || 'Funcionário não encontrado');
     }))).sort((a,b)=>a.localeCompare(b));
 
     let html = `
@@ -876,7 +876,7 @@ const relatóriosUI = (() => {
   };
 
   // Relatório: Ceasa (dia -> fornecedor -> produtos)
-  const renderRelatórioCeasa = () => {
+  const renderRelatórioCeasa = async () => {
     const panelBody = document.querySelector('.panel-body');
     document.querySelector('.page-title').textContent = 'Relatórios - Ceasa';
     const btnAction = document.getElementById('btnAction');
@@ -886,7 +886,7 @@ const relatóriosUI = (() => {
     const fornecedores = FornecedoresManager.getFornecedores ? FornecedoresManager.getFornecedores() : [];
     
     const nomesFornecedores = Array.from(new Set(compras.map(c => {
-      const forn = fornecedores.find(f => f.id === c.fornecedorId);
+      const forn = fornecedores.find(f => f.id === c.fornecedor_id || f.id === c.fornecedorId);
       return forn ? forn.nome : 'Sem fornecedor';
     }))).sort((a,b)=>a.localeCompare(b));
 
@@ -1268,14 +1268,14 @@ const relatóriosUI = (() => {
   };
 
   // Relatório: Funcionários
-  const renderRelatórioFuncionários = () => {
+  const renderRelatórioFuncionários = async () => {
     const panelBody = document.querySelector('.panel-body');
     document.querySelector('.page-title').textContent = 'Relatórios - Funcionários';
     const btnAction = document.getElementById('btnAction');
     if (btnAction) btnAction.style.display = 'none';
 
     const funcionarios = FuncionariosUI.getFuncionarios ? FuncionariosUI.getFuncionarios() : [];
-    const faltas = FaltasManager.getFaltas ? FaltasManager.getFaltas() : [];
+    const faltas = await (FaltasManager.getFaltas ? FaltasManager.getFaltas() : []);
     const quebras = quebrasManager.getQuebras ? quebrasManager.getQuebras() : [];
     
     const cargosDisponiveis = Array.from(new Set(funcionarios.map(f => f.cargo || '-'))).sort((a,b)=>a.localeCompare(b));

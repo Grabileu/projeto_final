@@ -201,7 +201,7 @@
   <script src="relatorios.js"></script>
   <script src="dashboard.js"></script>
   <script>
-    (function () {
+    (async function () {
       const toggle = document.querySelector('.menu-toggle');
       toggle.addEventListener('click', () => {
         document.documentElement.classList.toggle('sidebar-collapsed');
@@ -278,50 +278,47 @@
         }
       });
 
-      const atualizarSecao = (secao) => {
+      const atualizarSecao = async (secao) => {
         if (secao === 'dashboard') {
           btnAction.style.display = 'none';
-          dashboardUI.renderDashboard();
+          await dashboardUI.renderDashboard();
         } else if (secao === 'funcionario') {
           btnAction.textContent = 'Criar funcionário';
           btnAction.style.display = 'block';
-          FuncionariosUI.renderLista();
+          await FuncionariosUI.renderLista();
         } else if (secao === 'faltas') {
           btnAction.textContent = 'Adicionar falta';
           btnAction.style.display = 'block';
-          FaltasUI.renderLista();
+          await FaltasUI.renderLista();
         } else if (secao === 'quebras') {
           btnAction.textContent = 'Adicionar vale';
           btnAction.style.display = 'block';
-          quebrasUI.renderLista();
+          await quebrasUI.renderLista();
         } else if (secao === 'ceasa-compras') {
           btnAction.textContent = 'Adicionar compra';
           btnAction.style.display = 'block';
-          ceasaUI.renderLista();
+          await ceasaUI.renderLista();
         } else if (secao === 'ceasa-fornecedores') {
           btnAction.textContent = 'Adicionar fornecedor';
           btnAction.style.display = 'block';
-          fornecedoresUI.renderLista();
+          await fornecedoresUI.renderLista();
         } else if (secao === 'relatorios-quebras') {
           btnAction.style.display = 'none';
-          relatóriosUI.renderRelatórioQuebras();
+          await relatóriosUI.renderRelatórioQuebras();
         } else if (secao === 'relatorios-faltas-atestados') {
           btnAction.style.display = 'none';
-          relatóriosUI.renderRelatórioFaltasAtestados();
+          await relatóriosUI.renderRelatórioFaltasAtestados();
         } else if (secao === 'relatorios-ceasa') {
           btnAction.style.display = 'none';
-          relatóriosUI.renderRelatórioCeasa();
+          await relatóriosUI.renderRelatórioCeasa();
         } else if (secao === 'relatorios-funcionarios') {
           btnAction.style.display = 'none';
-          relatóriosUI.renderRelatórioFuncionários();
-        } else if (secao === 'relatorios-ceasa') {
-          btnAction.style.display = 'none';
-          relatóriosUI.renderRelatórioCeasa();
+          await relatóriosUI.renderRelatórioFuncionários();
         }
       };
 
       // Inicializar com o dashboard
-      atualizarSecao('dashboard');
+      await atualizarSecao('dashboard');
     })();
   </script>
   <script>
