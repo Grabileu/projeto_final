@@ -21,8 +21,7 @@ const FaltasManager = (() => {
       tipo,
       data,
       justificada: justificada || false,
-      justificativa: justificativa || '',
-      data_criacao: new Date().toISOString()
+      justificativa: justificativa || ''
     };
 
     const { error } = await window.supabaseClient
@@ -30,8 +29,9 @@ const FaltasManager = (() => {
       .insert([novaFalta]);
 
     if (error) {
-      alert('Erro ao salvar falta');
-      console.error(error);
+      console.error('Erro ao adicionar falta:', error);
+      console.error('Detalhes:', error.message, error.details, error.hint);
+      alert('Erro ao salvar falta: ' + error.message);
       return null;
     }
 

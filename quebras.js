@@ -16,7 +16,6 @@ const quebrasManager = (() => {
 
   const addQuebra = async (funcionarioId, funcionarioNome, tipo, valor, data, descricao, situacao = null, comprovante = null) => {
     const novaQuebra = {
-      id: Date.now().toString(),
       funcionario_id: funcionarioId,
       funcionario_nome: funcionarioNome,
       tipo,
@@ -24,8 +23,7 @@ const quebrasManager = (() => {
       data,
       descricao,
       situacao,
-      comprovante,
-      data_criacao: new Date().toISOString()
+      comprovante
     };
 
     const { data: inserted, error } = await window.supabaseClient
@@ -36,7 +34,8 @@ const quebrasManager = (() => {
 
     if (error) {
       console.error('Erro ao adicionar quebra:', error);
-      alert('Erro ao salvar quebra no banco de dados');
+      console.error('Detalhes:', error.message, error.details, error.hint);
+      alert('Erro ao salvar quebra: ' + error.message);
       return null;
     }
 

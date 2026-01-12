@@ -16,13 +16,11 @@ const FuncionariosManager = (() => {
 
   const addFuncionario = async (nome, cargo, dataAdmissao, cpf, salario) => {
     const novoFuncionario = {
-      id: Date.now().toString(),
       nome,
       cargo,
       data_admissao: dataAdmissao,
       cpf,
-      salario: parseFloat(salario),
-      data_criacao: new Date().toISOString()
+      salario: parseFloat(salario)
     };
 
     const { data, error } = await window.supabaseClient
@@ -33,7 +31,8 @@ const FuncionariosManager = (() => {
 
     if (error) {
       console.error('Erro ao adicionar funcionário:', error);
-      alert('Erro ao salvar funcionário no banco de dados');
+      console.error('Detalhes:', error.message, error.details, error.hint);
+      alert('Erro ao salvar funcionário: ' + error.message);
       return null;
     }
 

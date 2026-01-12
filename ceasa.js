@@ -16,7 +16,6 @@ const ceasaManager = (() => {
 
   const addCompra = async (produto, quantidade, unidade, valor, data, descricao = '', fornecedorId = null, caixas = null, tipo = 'caixa') => {
     const novaCompra = {
-      id: Date.now().toString(),
       produto,
       quantidade: parseFloat(quantidade),
       unidade,
@@ -25,8 +24,7 @@ const ceasaManager = (() => {
       descricao,
       fornecedor_id: fornecedorId || null,
       caixas: caixas != null ? caixas : null,
-      tipo: tipo || 'caixa',
-      data_criacao: new Date().toISOString()
+      tipo: tipo || 'caixa'
     };
 
     const { data: inserted, error } = await window.supabaseClient
@@ -37,7 +35,8 @@ const ceasaManager = (() => {
 
     if (error) {
       console.error('Erro ao adicionar compra:', error);
-      alert('Erro ao salvar compra no banco de dados');
+      console.error('Detalhes:', error.message, error.details, error.hint);
+      alert('Erro ao salvar compra: ' + error.message);
       return null;
     }
 

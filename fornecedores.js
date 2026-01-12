@@ -16,13 +16,11 @@ const FornecedoresManager = (() => {
 
   const addFornecedor = async (nome, contato, email, endereco, produtos) => {
     const novoFornecedor = {
-      id: Date.now().toString(),
       nome,
       contato,
       email,
       endereco,
-      telefone: contato,
-      data_criacao: new Date().toISOString()
+      telefone: contato
     };
 
     const { data, error } = await window.supabaseClient
@@ -33,7 +31,8 @@ const FornecedoresManager = (() => {
 
     if (error) {
       console.error('Erro ao adicionar fornecedor:', error);
-      alert('Erro ao salvar fornecedor no banco de dados');
+      console.error('Detalhes do erro:', error.message, error.details, error.hint);
+      alert('Erro ao salvar fornecedor: ' + error.message);
       return null;
     }
 
