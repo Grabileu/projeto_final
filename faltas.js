@@ -182,7 +182,10 @@ const FaltasUI = (() => {
   };
 
   const renderLista = async () => {
-    const panelBody = document.querySelector('.panel-body');
+    const panelBody = document.querySelector('.panel-body');    if (!panelBody) {
+      console.error('panel-body não encontrado');
+      return;
+    }
     const faltasOrdenadas = await FaltasManager.getFaltasOrdenadas(filtroAno, filtroMes);
 
     if (faltasOrdenadas.length === 0) {

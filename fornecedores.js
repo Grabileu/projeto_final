@@ -108,8 +108,13 @@ const fornecedoresUI = (() => {
   };
 
   const renderLista = async () => {
-    const fornecedores = await FornecedoresManager.getFornecedores();
     const panelBody = document.querySelector('.panel-body');
+    if (!panelBody) {
+      console.error('panel-body não encontrado');
+      return;
+    }
+
+    const fornecedores = await FornecedoresManager.getFornecedores();
 
     if (fornecedores.length === 0) {
       panelBody.innerHTML = '<p class="empty">Nenhum fornecedor cadastrado. Clique em "Adicionar fornecedor" para incluir.</p>';

@@ -254,6 +254,11 @@ const quebrasUI = (() => {
 
   const renderLista = async () => {
     const panelBody = document.querySelector('.panel-body');
+    if (!panelBody) {
+      console.error('panel-body não encontrado');
+      return;
+    }
+
     const quebrasOrdenadas = await quebrasManager.getQuebrasPorMesOrdenadas(filtroAno, filtroMes);
 
     let html = `

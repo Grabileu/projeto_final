@@ -111,8 +111,13 @@ const FuncionariosUI = (() => {
   };
 
   const renderLista = async () => {
-    const funcionarios = await FuncionariosManager.getFuncionarios();
     const panelBody = document.querySelector('.panel-body');
+    if (!panelBody) {
+      console.error('panel-body não encontrado');
+      return;
+    }
+
+    const funcionarios = await FuncionariosManager.getFuncionarios();
 
     if (funcionarios.length === 0) {
       panelBody.innerHTML = '<p class="empty">Nenhum funcionário cadastrado. Clique em "Criar funcionário" para adicionar.</p>';
