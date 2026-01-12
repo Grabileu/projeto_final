@@ -264,24 +264,30 @@
       if (btnAction) {
         btnAction.addEventListener('click', async () => {
           try {
-            console.log('🔵 Botão ADICIONAR clicado! currentSection:', currentSection);
+            console.log('🔵 Botão ADICIONAR clicado!');
+            console.log('📍 currentSection:', currentSection);
+            console.log('📍 Tipo do currentSection:', typeof currentSection);
             
             if (currentSection === 'funcionario') {
-              console.log('Chamando FuncionariosUI.showCreatePage');
+              console.log('➡️ Chamando FuncionariosUI.showCreatePage');
               await FuncionariosUI.showCreatePage();
             } else if (currentSection === 'faltas') {
-              console.log('Chamando FaltasUI.showAddFaltaPage');
+              console.log('➡️ Chamando FaltasUI.showAddFaltaPage');
               await FaltasUI.showAddFaltaPage();
             } else if (currentSection === 'quebras') {
-              console.log('Chamando quebrasUI.showAddQuebraPage');
+              console.log('➡️ Chamando quebrasUI.showAddQuebraPage');
               await quebrasUI.showAddQuebraPage();
             } else if (currentSection === 'ceasa-compras') {
+              console.log('➡️ Chamando ceasaUI.showAddCompraPage');
               await ceasaUI.showAddCompraPage();
             } else if (currentSection === 'ceasa-fornecedores') {
+              console.log('➡️ Chamando fornecedoresUI.showAddFornecedorPage');
               await fornecedoresUI.showAddFornecedorPage();
             } else if (currentSection.startsWith('relatorios-')) {
-              // Relatórios não têm botão de ação
+              console.log('➡️ Relatórios - escondendo botão');
               document.getElementById('btnAction').style.display = 'none';
+            } else {
+              console.warn('⚠️ currentSection não reconhecido:', currentSection);
             }
             // Garantir que botão fique visível após clique
             setTimeout(() => {
@@ -295,6 +301,10 @@
       }
 
       const atualizarSecao = async (secao) => {
+        console.log('🔄 atualizarSecao chamada com:', secao);
+        currentSection = secao;
+        console.log('📍 currentSection atualizado para:', currentSection);
+        
         const btn = document.getElementById('btnAction');
         const actionsDiv = document.querySelector('.panel-header .actions');
         

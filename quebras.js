@@ -382,13 +382,22 @@ const quebrasUI = (() => {
 
   const showAddQuebraPage = async () => {
     try {
-      console.log('showAddQuebraPage iniciado');
+      console.log('🔵 showAddQuebraPage iniciado');
       const panelBody = document.querySelector('.panel-body');
       const panelHeader = document.querySelector('.panel-header');
       
       if (!panelBody || !panelHeader) {
-        console.error('panelBody ou panelHeader não encontrado');
+        console.error('❌ panelBody ou panelHeader não encontrado');
         return;
+      }
+
+      console.log('✅ Elementos encontrados');
+      
+      // Atualizar título da página
+      const pageTitle = document.querySelector('.page-title');
+      if (pageTitle) {
+        pageTitle.textContent = 'Quebras de Caixa';
+        console.log('✅ Título atualizado');
       }
       
       const actionsDiv = panelHeader.querySelector('.actions');
@@ -396,15 +405,17 @@ const quebrasUI = (() => {
       const h2 = panelHeader.querySelector('h2');
       if (h2) h2.style.display = 'none';
 
-      console.log('Buscando funcionários...');
+      console.log('🔍 Buscando funcionários...');
       const funcionarios = await FuncionariosManager.getFuncionarios();
-      console.log('Funcionários carregados:', funcionarios.length);
+      console.log('✅ Funcionários carregados:', funcionarios.length);
       
       let optionsFuncionarios = '<option value="">Selecione um funcionário</option>';
       
       funcionarios.forEach(f => {
         optionsFuncionarios += `<option value="${f.id}|${f.nome}">${f.nome}</option>`;
       });
+
+      console.log('📝 Renderizando formulário...');
       
       panelBody.innerHTML = `
         <div class="form-page">
@@ -600,9 +611,9 @@ const quebrasUI = (() => {
       await backToList();
     });
 
-    document.getElementById('btnCancel').addEventListener('click', async () => await backToList());
-    
-    console.log('showAddQuebraPage concluído com sucesso');
+    document.getE✅ showAddQuebraPage concluído com sucesso');
+    } catch (error) {
+      console.error('❌ AddQuebraPage concluído com sucesso');
     } catch (error) {
       console.error('Erro em showAddQuebraPage:', error);
       alert('Erro ao carregar formulário de quebras. Verifique o console.');
