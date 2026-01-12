@@ -1,86 +1,95 @@
 // fornecedores.js
 const FornecedoresManager = (() => {
-
   const getFornecedores = async () => {
-    const { data, error } = await supabaseClient
+    const { data, error } = await window.supabaseClient
       .from('fornecedores')
       .select('*')
-      .order('nome');
+      .order('data_criacao', { ascending: false });
 
     if (error) {
-      console.error('Erro ao buscar fornecedores', error);
+      console.error('Erro ao buscar fornecedores:', error);
       return [];
     }
+
     return data || [];
   };
 
   const addFornecedor = async (nome, contato, email, endereco, produtos) => {
     const novoFornecedor = {
+      id: Date.now().toString(),
       nome,
       contato,
       email,
       endereco,
-      produtos: produtos || []
+      telefone: contato,
+      data_criacao: new Date().toISOString()
     };
 
-    const { error } = await supabaseClient
+    const { data, error } = await window.supabaseClient
       .from('fornecedores')
-      .insert([novoFornecedor]);
+      .insert([novoFornecedor])
+      .select()
+      .single();
 
     if (error) {
-      alert('Erro ao salvar fornecedor');
-      console.error(error);
+      console.error('Erro ao adicionar fornecedor:', error);
+      alert('Erro ao salvar fornecedor no banco de dados');
       return null;
     }
 
-    return novoFornecedor;
+    return data;
   };
 
   const updateFornecedor = async (id, nome, contato, email, endereco, produtos) => {
-    const { error } = await supabaseClient
+    const { data, error } = await window.supabaseClient
       .from('fornecedores')
       .update({
         nome,
         contato,
         email,
         endereco,
-        produtos
+        telefone: contato
       })
-      .eq('id', id);
+      .eq('id', id)
+      .select()
+      .single();
 
     if (error) {
-      alert('Erro ao atualizar fornecedor');
-      console.error(error);
+      console.error('Erro ao atualizar fornecedor:', error);
+      alert('Erro ao atualizar fornecedor no banco de dados');
       return null;
     }
 
-    return true;
+    return data;
   };
 
   const deleteFornecedor = async (id) => {
-    const { error } = await supabaseClient
+    const { error } = await window.supabaseClient
       .from('fornecedores')
       .delete()
       .eq('id', id);
 
     if (error) {
-      alert('Erro ao excluir fornecedor');
-      console.error(error);
+      console.error('Erro ao excluir fornecedor:', error);
+      alert('Erro ao excluir fornecedor do banco de dados');
+      return false;
     }
+
     return true;
   };
 
   const getFornecedorById = async (id) => {
-    const { data, error } = await supabaseClient
+    const { data, error } = await window.supabaseClient
       .from('fornecedores')
       .select('*')
       .eq('id', id)
       .single();
 
     if (error) {
-      console.error('Erro ao buscar fornecedor', error);
+      console.error('Erro ao buscar fornecedor:', error);
       return null;
     }
+
     return data;
   };
 
@@ -99,8 +108,13 @@ const fornecedoresUI = (() => {
   };
 
   const renderLista = async () => {
-    const fornecedores = await FornecedoresManager.getFornecedores();
     const panelBody = document.querySelector('.panel-body');
+    if (!panelBody) {
+      console.error('panel-body não encontrado');
+      return;
+    }
+
+    const fornecedores = await FornecedoresManager.getFornecedores();
 
     if (fornecedores.length === 0) {
       panelBody.innerHTML = '<p class="empty">Nenhum fornecedor cadastrado. Clique em "Adicionar fornecedor" para incluir.</p>';
@@ -172,7 +186,7 @@ const fornecedoresUI = (() => {
     html += '</ul></div>';
     panelBody.innerHTML = html;
 
-    document.getElementById('btnVoltar').addEventListener('click', renderLista);
+    document.getElementById('btnVoltar').addEventListener('click', async () => await renderLista());
 
     document.querySelector('.btn-edit-fornecedor').addEventListener('click', (e) => {
       e.stopPropagation();
@@ -183,7 +197,7 @@ const fornecedoresUI = (() => {
       e.stopPropagation();
       if (confirm('Tem certeza que deseja excluir este fornecedor?')) {
         await FornecedoresManager.deleteFornecedor(id);
-        renderLista();
+        await renderLista();
       }
     });
   };
@@ -191,7 +205,11 @@ const fornecedoresUI = (() => {
   const showAddFornecedorPage = () => {
     const panelBody = document.querySelector('.panel-body');
     const panelHeader = document.querySelector('.panel-header');
-    panelHeader.style.display = 'none';
+    
+    const actionsDiv = panelHeader.querySelector('.actions');
+    if (actionsDiv) actionsDiv.style.display = 'none';
+    const h2 = panelHeader.querySelector('h2');
+    if (h2) h2.style.display = 'none';
 
     panelBody.innerHTML = `
       <div class="form-page">
@@ -292,10 +310,10 @@ const fornecedoresUI = (() => {
       }
 
       await FornecedoresManager.addFornecedor(nome, contato, email, endereco, produtosValidos);
-      backToList();
+      await backToList();
     });
 
-    document.getElementById('btnCancel').addEventListener('click', backToList);
+    document.getElementById('btnCancel').addEventListener('click', async () => await backToList());
   };
 
   const showEditFornecedorPage = async (id) => {
@@ -304,7 +322,11 @@ const fornecedoresUI = (() => {
 
     const panelBody = document.querySelector('.panel-body');
     const panelHeader = document.querySelector('.panel-header');
-    panelHeader.style.display = 'none';
+    
+    const actionsDiv = panelHeader.querySelector('.actions');
+    if (actionsDiv) actionsDiv.style.display = 'none';
+    const h2 = panelHeader.querySelector('h2');
+    if (h2) h2.style.display = 'none';
 
     panelBody.innerHTML = `
       <div class="form-page">
@@ -403,16 +425,19 @@ const fornecedoresUI = (() => {
       }
 
       await FornecedoresManager.updateFornecedor(id, nome, contato, email, endereco, produtosValidos);
-      backToList();
+      await backToList();
     });
 
-    document.getElementById('btnCancel').addEventListener('click', backToList);
+    document.getElementById('btnCancel').addEventListener('click', async () => await backToList());
   };
 
-  const backToList = () => {
+  const backToList = async () => {
     const panelHeader = document.querySelector('.panel-header');
-    panelHeader.style.display = 'flex';
-    renderLista();
+    const actionsDiv = panelHeader.querySelector('.actions');
+    if (actionsDiv) actionsDiv.style.display = 'block';
+    const h2 = panelHeader.querySelector('h2');
+    if (h2) h2.style.display = 'block';
+    await renderLista();
   };
 
   return {
@@ -422,3 +447,7 @@ const fornecedoresUI = (() => {
     backToList
   };
 })();
+
+// Exportar para acesso global
+window.FornecedoresManager = FornecedoresManager;
+window.fornecedoresUI = fornecedoresUI;

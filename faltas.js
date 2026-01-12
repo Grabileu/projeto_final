@@ -2,7 +2,7 @@
 const FaltasManager = (() => {
 
   const getFaltas = async () => {
-    const { data, error } = await supabaseClient
+    const { data, error } = await window.supabaseClient
       .from('faltas')
       .select('*')
       .order('data', { ascending: false });
@@ -16,16 +16,16 @@ const FaltasManager = (() => {
 
   const addFalta = async (funcionarioId, funcionarioNome, tipo, data, justificada, justificativa) => {
     const novaFalta = {
-      funcionarioId,
-      funcionarioNome,
+      funcionario_id: funcionarioId,
+      funcionario_nome: funcionarioNome,
       tipo,
       data,
       justificada: justificada || false,
       justificativa: justificativa || '',
-      dataCriacao: new Date().toISOString()
+      data_criacao: new Date().toISOString()
     };
 
-    const { error } = await supabaseClient
+    const { error } = await window.supabaseClient
       .from('faltas')
       .insert([novaFalta]);
 
@@ -39,11 +39,11 @@ const FaltasManager = (() => {
   };
 
   const updateFalta = async (id, funcionarioId, funcionarioNome, tipo, data, justificada, justificativa) => {
-    const { error } = await supabaseClient
+    const { error } = await window.supabaseClient
       .from('faltas')
       .update({
-        funcionarioId,
-        funcionarioNome,
+        funcionario_id: funcionarioId,
+        funcionario_nome: funcionarioNome,
         tipo,
         data,
         justificada: justificada || false,
@@ -61,7 +61,7 @@ const FaltasManager = (() => {
   };
 
   const deleteFalta = async (id) => {
-    const { error } = await supabaseClient
+    const { error } = await window.supabaseClient
       .from('faltas')
       .delete()
       .eq('id', id);
@@ -74,7 +74,7 @@ const FaltasManager = (() => {
   };
 
   const getFaltaById = async (id) => {
-    const { data } = await supabaseClient
+    const { data } = await window.supabaseClient
       .from('faltas')
       .select('*')
       .eq('id', id)
@@ -84,10 +84,10 @@ const FaltasManager = (() => {
   };
 
   const getFaltasPorFuncionario = async (funcionarioId) => {
-    const { data, error } = await supabaseClient
+    const { data, error } = await window.supabaseClient
       .from('faltas')
       .select('*')
-      .eq('funcionarioId', funcionarioId);
+      .eq('funcionario_id', funcionarioId);
 
     if (error) {
       console.error('Erro ao buscar faltas por funcionário:', error);
@@ -102,7 +102,7 @@ const FaltasManager = (() => {
     const inicioMes = `${ano}-${mesFormatado}-01`;
     const fimMes = `${ano}-${mesFormatado}-31`;
 
-    const { data, error } = await supabaseClient
+    const { data, error } = await window.supabaseClient
       .from('faltas')
       .select('*')
       .gte('data', inicioMes)
@@ -120,15 +120,16 @@ const FaltasManager = (() => {
     const faltas = await getFaltasPorMes(ano, mes);
     const contagem = {};
     faltas.forEach(f => {
-      if (!contagem[f.funcionarioNome]) {
-        contagem[f.funcionarioNome] = { faltas: 0, atestados: 0, total: 0 };
+      const nome = f.funcionario_nome || f.funcionarioNome;
+      if (!contagem[nome]) {
+        contagem[nome] = { faltas: 0, atestados: 0, total: 0 };
       }
       if (f.tipo === 'atestado') {
-        contagem[f.funcionarioNome].atestados++;
+        contagem[nome].atestados++;
       } else {
-        contagem[f.funcionarioNome].faltas++;
+        contagem[nome].faltas++;
       }
-      contagem[f.funcionarioNome].total++;
+      contagem[nome].total++;
     });
     return contagem;
   };
@@ -164,7 +165,10 @@ const FaltasUI = (() => {
   };
 
   const renderLista = async () => {
-    const panelBody = document.querySelector('.panel-body');
+    const panelBody = document.querySelector('.panel-body');    if (!panelBody) {
+      console.error('panel-body não encontrado');
+      return;
+    }
     const faltasOrdenadas = await FaltasManager.getFaltasOrdenadas(filtroAno, filtroMes);
 
     if (faltasOrdenadas.length === 0) {
@@ -187,7 +191,10 @@ const FaltasUI = (() => {
     
     for (const item of faltasOrdenadas) {
       const registros = await FaltasManager.getFaltasPorMes(filtroAno, filtroMes);
-      const registrosFuncionario = registros.filter(f => f.funcionarioNome === item.nome);
+      const registrosFuncionario = registros.filter(f => {
+        const nome = f.funcionario_nome || f.funcionarioNome;
+        return nome === item.nome;
+      });
       html += `
         <li class="falta-item">
           <div class="falta-info">
@@ -270,10 +277,10 @@ const FaltasUI = (() => {
   const attachFiltroEvents = () => {
     const btnAplicar = document.getElementById('btnAplicarFiltro');
     if (btnAplicar) {
-      btnAplicar.addEventListener('click', () => {
+      btnAplicar.addEventListener('click', async () => {
         filtroMes = parseInt(document.getElementById('filtroMes').value);
         filtroAno = parseInt(document.getElementById('filtroAno').value);
-        renderLista();
+        await renderLista();
       });
     }
   };
@@ -307,35 +314,48 @@ const FaltasUI = (() => {
         const id = btn.getAttribute('data-id');
         if (confirm('Tem certeza que deseja excluir este registro?')) {
           await FaltasManager.deleteFalta(id);
-          renderLista();
+          await renderLista();
         }
       });
     });
   };
 
-  const showAddFaltaPage = () => {
-    const panelBody = document.querySelector('.panel-body');
-    const panelHeader = document.querySelector('.panel-header');
-    
-    panelHeader.style.display = 'none';
+  const showAddFaltaPage = async () => {
+    try {
+      console.log('showAddFaltaPage iniciado');
+      const panelBody = document.querySelector('.panel-body');
+      const panelHeader = document.querySelector('.panel-header');
+      
+      if (!panelBody || !panelHeader) {
+        console.error('panelBody ou panelHeader não encontrado');
+        return;
+      }
+      
+      const actionsDiv = panelHeader.querySelector('.actions');
+      if (actionsDiv) actionsDiv.style.display = 'none';
+      const h2 = panelHeader.querySelector('h2');
+      if (h2) h2.style.display = 'none';
 
-    const funcionarios = FuncionariosManager.getFuncionarios();
-    let optionsFuncionarios = '<option value="">Selecione um funcionário</option>';
-    
-    funcionarios.forEach(f => {
-      optionsFuncionarios += `<option value="${f.id}|${f.nome}">${f.nome}</option>`;
-    });
-    
-    panelBody.innerHTML = `
-      <div class="form-page">
-        <div class="form-header">
-          <h2>Registrar falta ou atestado</h2>
-        </div>
-        
-        <form id="formFalta" class="form-large">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="funcionario">Funcionário *</label>
+      console.log('Buscando funcionários...');
+      const funcionarios = await FuncionariosManager.getFuncionarios();
+      console.log('Funcionários carregados:', funcionarios.length);
+      
+      let optionsFuncionarios = '<option value="">Selecione um funcionário</option>';
+      
+      funcionarios.forEach(f => {
+        optionsFuncionarios += `<option value="${f.id}|${f.nome}">${f.nome}</option>`;
+      });
+      
+      panelBody.innerHTML = `
+        <div class="form-page">
+          <div class="form-header">
+            <h2>Registrar falta ou atestado</h2>
+          </div>
+          
+          <form id="formFalta" class="form-large">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="funcionario">Funcionário *</label>
               <select id="funcionario" name="funcionario" required>
                 ${optionsFuncionarios}
               </select>
@@ -403,7 +423,13 @@ const FaltasUI = (() => {
       backToList();
     });
 
-    document.getElementById('btnCancel').addEventListener('click', backToList);
+    document.getElementById('btnCancel').addEventListener('click', async () => await backToList());
+    
+    console.log('showAddFaltaPage concluído com sucesso');
+    } catch (error) {
+      console.error('Erro em showAddFaltaPage:', error);
+      alert('Erro ao carregar formulário de faltas. Verifique o console.');
+    }
   };
 
   const showEditFaltaPage = async (id) => {
@@ -413,9 +439,12 @@ const FaltasUI = (() => {
     const panelBody = document.querySelector('.panel-body');
     const panelHeader = document.querySelector('.panel-header');
     
-    panelHeader.style.display = 'none';
+    const actionsDiv = panelHeader.querySelector('.actions');
+    if (actionsDiv) actionsDiv.style.display = 'none';
+    const h2 = panelHeader.querySelector('h2');
+    if (h2) h2.style.display = 'none';
 
-    const funcionarios = FuncionariosManager.getFuncionarios();
+    const funcionarios = await FuncionariosManager.getFuncionarios();
     let optionsFuncionarios = '<option value="">Selecione um funcionário</option>';
     
     funcionarios.forEach(f => {
@@ -500,13 +529,16 @@ const FaltasUI = (() => {
       backToList();
     });
 
-    document.getElementById('btnCancel').addEventListener('click', backToList);
+    document.getElementById('btnCancel').addEventListener('click', async () => await backToList());
   };
 
-  const backToList = () => {
+  const backToList = async () => {
     const panelHeader = document.querySelector('.panel-header');
-    panelHeader.style.display = 'flex';
-    renderLista();
+    const actionsDiv = panelHeader.querySelector('.actions');
+    if (actionsDiv) actionsDiv.style.display = 'block';
+    const h2 = panelHeader.querySelector('h2');
+    if (h2) h2.style.display = 'block';
+    await renderLista();
   };
 
   return {
@@ -516,3 +548,7 @@ const FaltasUI = (() => {
     backToList
   };
 })();
+
+// Exportar para acesso global
+window.FaltasManager = FaltasManager;
+window.FaltasUI = FaltasUI;

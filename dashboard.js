@@ -7,8 +7,9 @@ const dashboardUI = (() => {
     }).format(valor);
   };
 
-  const renderDashboard = () => {
+  const renderDashboard = async () => {
     const panelBody = document.querySelector('.panel-body');
+    if (!panelBody) return;
     
     document.querySelector('.page-title').textContent = 'Dashboard';
     const btnAction = document.getElementById('btnAction');
@@ -34,9 +35,9 @@ const dashboardUI = (() => {
     };
 
     // Buscar dados
-    const allQuebras = quebrasManager.getQuebras();
-    const allFaltas = FaltasManager.getFaltas();
-    const funcionarios = FuncionariosManager.getFuncionarios();
+    const allQuebras = await quebrasManager.getQuebras();
+    const allFaltas = await FaltasManager.getFaltas();
+    const funcionarios = await FuncionariosManager.getFuncionarios();
 
     // Filtrar apenas dados do mês atual
     const quebras = allQuebras.filter(q => ehDoMesAtual(q.data));
@@ -45,7 +46,7 @@ const dashboardUI = (() => {
     // Calcular maiores quebras por funcionário
     const quebrasPorFuncionario = {};
     quebras.forEach(q => {
-      const nome = q.funcionarioNome || 'Desconhecido';
+      const nome = q.funcionario_nome || q.funcionarioNome || 'Desconhecido';
       if (!quebrasPorFuncionario[nome]) {
         quebrasPorFuncionario[nome] = { total: 0, quantidade: 0 };
       }
@@ -60,7 +61,7 @@ const dashboardUI = (() => {
     // Calcular maiores faltas por funcionário
     const faltasPorFuncionario = {};
     faltas.forEach(f => {
-      const nome = f.funcionarioNome || 'Desconhecido';
+      const nome = f.funcionario_nome || f.funcionarioNome || 'Desconhecido';
       if (!faltasPorFuncionario[nome]) {
         faltasPorFuncionario[nome] = { faltas: 0, atestados: 0, total: 0 };
       }

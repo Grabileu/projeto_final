@@ -201,7 +201,7 @@
   <script src="relatorios.js"></script>
   <script src="dashboard.js"></script>
   <script>
-    (function () {
+    (async function () {
       const toggle = document.querySelector('.menu-toggle');
       toggle.addEventListener('click', () => {
         document.documentElement.classList.toggle('sidebar-collapsed');
@@ -261,67 +261,146 @@
       });
 
       const btnAction = document.getElementById('btnAction');
-      btnAction.addEventListener('click', () => {
-        if (currentSection === 'funcionario') {
-          FuncionariosUI.showCreatePage();
-        } else if (currentSection === 'faltas') {
-          FaltasUI.showAddFaltaPage();
-        } else if (currentSection === 'quebras') {
-          quebrasUI.showAddQuebraPage();
-        } else if (currentSection === 'ceasa-compras') {
-          ceasaUI.showAddCompraPage();
-        } else if (currentSection === 'ceasa-fornecedores') {
-          fornecedoresUI.showAddFornecedorPage();
-        } else if (currentSection.startsWith('relatorios-')) {
-          // Relatórios não têm botão de ação
-          btnAction.style.display = 'none';
-        }
-      });
+      if (btnAction) {
+        btnAction.addEventListener('click', async () => {
+          try {
+            console.log('🔵 Botão ADICIONAR clicado! currentSection:', currentSection);
+            
+            if (currentSection === 'funcionario') {
+              console.log('Chamando FuncionariosUI.showCreatePage');
+              await FuncionariosUI.showCreatePage();
+            } else if (currentSection === 'faltas') {
+              console.log('Chamando FaltasUI.showAddFaltaPage');
+              await FaltasUI.showAddFaltaPage();
+            } else if (currentSection === 'quebras') {
+              console.log('Chamando quebrasUI.showAddQuebraPage');
+              await quebrasUI.showAddQuebraPage();
+            } else if (currentSection === 'ceasa-compras') {
+              await ceasaUI.showAddCompraPage();
+            } else if (currentSection === 'ceasa-fornecedores') {
+              await fornecedoresUI.showAddFornecedorPage();
+            } else if (currentSection.startsWith('relatorios-')) {
+              // Relatórios não têm botão de ação
+              document.getElementById('btnAction').style.display = 'none';
+            }
+            // Garantir que botão fique visível após clique
+            setTimeout(() => {
+              const btn = document.getElementById('btnAction');
+              if (btn) btn.style.display = 'block';
+            }, 100);
+          } catch (err) {
+            console.error('Erro ao executar ação do botão:', err);
+          }
+        });
+      }
 
-      const atualizarSecao = (secao) => {
-        if (secao === 'dashboard') {
-          btnAction.style.display = 'none';
-          dashboardUI.renderDashboard();
-        } else if (secao === 'funcionario') {
-          btnAction.textContent = 'Criar funcionário';
-          btnAction.style.display = 'block';
-          FuncionariosUI.renderLista();
-        } else if (secao === 'faltas') {
-          btnAction.textContent = 'Adicionar falta';
-          btnAction.style.display = 'block';
-          FaltasUI.renderLista();
-        } else if (secao === 'quebras') {
-          btnAction.textContent = 'Adicionar vale';
-          btnAction.style.display = 'block';
-          quebrasUI.renderLista();
-        } else if (secao === 'ceasa-compras') {
-          btnAction.textContent = 'Adicionar compra';
-          btnAction.style.display = 'block';
-          ceasaUI.renderLista();
-        } else if (secao === 'ceasa-fornecedores') {
-          btnAction.textContent = 'Adicionar fornecedor';
-          btnAction.style.display = 'block';
-          fornecedoresUI.renderLista();
-        } else if (secao === 'relatorios-quebras') {
-          btnAction.style.display = 'none';
-          relatóriosUI.renderRelatórioQuebras();
-        } else if (secao === 'relatorios-faltas-atestados') {
-          btnAction.style.display = 'none';
-          relatóriosUI.renderRelatórioFaltasAtestados();
-        } else if (secao === 'relatorios-ceasa') {
-          btnAction.style.display = 'none';
-          relatóriosUI.renderRelatórioCeasa();
-        } else if (secao === 'relatorios-funcionarios') {
-          btnAction.style.display = 'none';
-          relatóriosUI.renderRelatórioFuncionários();
-        } else if (secao === 'relatorios-ceasa') {
-          btnAction.style.display = 'none';
-          relatóriosUI.renderRelatórioCeasa();
+      const atualizarSecao = async (secao) => {
+        const btn = document.getElementById('btnAction');
+        if (!btn) return;
+        
+        try {
+          if (secao === 'dashboard') {
+            btn.style.display = 'none';
+            await dashboardUI.renderDashboard();
+          } else if (secao === 'funcionario') {
+            await FuncionariosUI.renderLista();
+            const btnRefresh = document.getElementById('btnAction');
+            if (btnRefresh) {
+              btnRefresh.textContent = 'Criar funcionário';
+              btnRefresh.style.display = 'block';
+            }
+          } else if (secao === 'faltas') {
+            await FaltasUI.renderLista();
+            const btnRefresh = document.getElementById('btnAction');
+            if (btnRefresh) {
+              btnRefresh.textContent = 'Adicionar falta';
+              btnRefresh.style.display = 'block';
+            }
+          } else if (secao === 'quebras') {
+            await quebrasUI.renderLista();
+            const btnRefresh = document.getElementById('btnAction');
+            if (btnRefresh) {
+              btnRefresh.textContent = 'Adicionar vale';
+              btnRefresh.style.display = 'block';
+            }
+          } else if (secao === 'ceasa-compras') {
+            await ceasaUI.renderLista();
+            const btnRefresh = document.getElementById('btnAction');
+            if (btnRefresh) {
+              btnRefresh.textContent = 'Adicionar compra';
+              btnRefresh.style.display = 'block';
+            }
+          } else if (secao === 'ceasa-fornecedores') {
+            await fornecedoresUI.renderLista();
+            const btnRefresh = document.getElementById('btnAction');
+            if (btnRefresh) {
+              btnRefresh.textContent = 'Adicionar fornecedor';
+              btnRefresh.style.display = 'block';
+            }
+          } else if (secao === 'relatorios-quebras') {
+            btn.style.display = 'none';
+            await relatóriosUI.renderRelatórioQuebras();
+          } else if (secao === 'relatorios-faltas-atestados') {
+            btn.style.display = 'none';
+            await relatóriosUI.renderRelatórioFaltasAtestados();
+          } else if (secao === 'relatorios-ceasa') {
+            btn.style.display = 'none';
+            await relatóriosUI.renderRelatórioCeasa();
+          } else if (secao === 'relatorios-funcionarios') {
+            btn.style.display = 'none';
+            await relatóriosUI.renderRelatórioFuncionários();
+          }
+        } catch (err) {
+          console.error('Erro ao atualizar seção:', err);
+          const btnRefresh = document.getElementById('btnAction');
+          if (btnRefresh) {
+            btnRefresh.style.display = 'block';
+          }
         }
       };
 
       // Inicializar com o dashboard
-      atualizarSecao('dashboard');
+      await atualizarSecao('dashboard');
+
+      // Monitorar se o botão desaparece e restaurá-lo
+      const panelHeader = document.querySelector('.panel-header');
+      if (panelHeader) {
+        const observer = new MutationObserver(() => {
+          const btn = document.getElementById('btnAction');
+          if (!btn && currentSection && !currentSection.startsWith('relatorios') && currentSection !== 'dashboard') {
+            console.warn('Botão desapareceu! Recriando...');
+            const actions = document.querySelector('.panel-header .actions');
+            if (actions) {
+              const newBtn = document.createElement('button');
+              newBtn.id = 'btnAction';
+              newBtn.className = 'btn primary';
+              newBtn.textContent = 'Adicionar';
+              newBtn.style.display = 'block';
+              actions.innerHTML = '';
+              actions.appendChild(newBtn);
+              // Reattach event listener
+              newBtn.addEventListener('click', async () => {
+                try {
+                  if (currentSection === 'funcionario') {
+                    await FuncionariosUI.showCreatePage();
+                  } else if (currentSection === 'faltas') {
+                    await FaltasUI.showAddFaltaPage();
+                  } else if (currentSection === 'quebras') {
+                    await quebrasUI.showAddQuebraPage();
+                  } else if (currentSection === 'ceasa-compras') {
+                    await ceasaUI.showAddCompraPage();
+                  } else if (currentSection === 'ceasa-fornecedores') {
+                    await fornecedoresUI.showAddFornecedorPage();
+                  }
+                } catch (err) {
+                  console.error('Erro ao recriar botão:', err);
+                }
+              });
+            }
+          }
+        });
+        observer.observe(panelHeader, { childList: true, subtree: true });
+      }
     })();
   </script>
   <script>

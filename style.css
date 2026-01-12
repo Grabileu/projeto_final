@@ -117,6 +117,14 @@ body{
 }
 .subnav-btn:hover{background:#f7fbff; color:var(--text)}
 
+/* Subnav Ceasa: aumenta a largura útil sem mudar o design geral */
+.nav-item[data-target="ceasa"] .subnav{
+  width:calc(100% + 12px);
+  margin-left:-6px;
+  padding-right:14px;
+}
+.nav-item[data-target="ceasa"] .subnav-btn{padding:10px 14px}
+
 /* Active states */
 .nav-item.active .nav-btn{
   background:linear-gradient(180deg,var(--accent),#2563eb);
