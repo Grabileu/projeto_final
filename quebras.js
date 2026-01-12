@@ -573,7 +573,7 @@ const quebrasUI = (() => {
       await backToList();
     });
 
-    document.getElementById('btnCancel').addEventListener('click', backToList);
+    document.getElementById('btnCancel').addEventListener('click', async () => await backToList());
   };
 
   const showEditQuebraPage = (id) => {
@@ -721,7 +721,7 @@ const quebrasUI = (() => {
       await backToList();
     });
 
-    document.getElementById('btnCancel').addEventListener('click', backToList);
+    document.getElementById('btnCancel').addEventListener('click', async () => await backToList());
 
     const tipoSelect = document.getElementById('tipo');
     const situacaoRow = document.getElementById('situacaoRow');

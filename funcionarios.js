@@ -249,7 +249,7 @@ const FuncionariosUI = (() => {
       await backToList();
     });
 
-    document.getElementById('btnCancel').addEventListener('click', backToList);
+    document.getElementById('btnCancel').addEventListener('click', async () => await backToList());
   };
 
   const showEditPage = (id) => {
@@ -339,7 +339,7 @@ const FuncionariosUI = (() => {
       await backToList();
     });
 
-    document.getElementById('btnCancel').addEventListener('click', backToList);
+    document.getElementById('btnCancel').addEventListener('click', async () => await backToList());
   };
 
   const backToList = async () => {

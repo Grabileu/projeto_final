@@ -872,7 +872,7 @@ const ceasaUI = (() => {
       await backToList();
     });
 
-    document.getElementById('btnCancel').addEventListener('click', backToList);
+    document.getElementById('btnCancel').addEventListener('click', async () => await backToList());
   };
 
   const showEditCompraPage = (id) => {
@@ -1063,7 +1063,7 @@ const ceasaUI = (() => {
       await backToList();
     });
 
-    document.getElementById('btnCancel').addEventListener('click', backToList);
+    document.getElementById('btnCancel').addEventListener('click', async () => await backToList());
   };
 
   const backToList = async () => {

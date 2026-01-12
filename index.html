@@ -283,25 +283,25 @@
           btnAction.style.display = 'none';
           await dashboardUI.renderDashboard();
         } else if (secao === 'funcionario') {
+          await FuncionariosUI.renderLista();
           btnAction.textContent = 'Criar funcionário';
           btnAction.style.display = 'block';
-          await FuncionariosUI.renderLista();
         } else if (secao === 'faltas') {
+          await FaltasUI.renderLista();
           btnAction.textContent = 'Adicionar falta';
           btnAction.style.display = 'block';
-          await FaltasUI.renderLista();
         } else if (secao === 'quebras') {
+          await quebrasUI.renderLista();
           btnAction.textContent = 'Adicionar vale';
           btnAction.style.display = 'block';
-          await quebrasUI.renderLista();
         } else if (secao === 'ceasa-compras') {
+          await ceasaUI.renderLista();
           btnAction.textContent = 'Adicionar compra';
           btnAction.style.display = 'block';
-          await ceasaUI.renderLista();
         } else if (secao === 'ceasa-fornecedores') {
+          await fornecedoresUI.renderLista();
           btnAction.textContent = 'Adicionar fornecedor';
           btnAction.style.display = 'block';
-          await fornecedoresUI.renderLista();
         } else if (secao === 'relatorios-quebras') {
           btnAction.style.display = 'none';
           await relatóriosUI.renderRelatórioQuebras();

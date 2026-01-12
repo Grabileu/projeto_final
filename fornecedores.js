@@ -304,7 +304,7 @@ const fornecedoresUI = (() => {
       await backToList();
     });
 
-    document.getElementById('btnCancel').addEventListener('click', backToList);
+    document.getElementById('btnCancel').addEventListener('click', async () => await backToList());
   };
 
   const showEditFornecedorPage = (id) => {
@@ -415,7 +415,7 @@ const fornecedoresUI = (() => {
       await backToList();
     });
 
-    document.getElementById('btnCancel').addEventListener('click', backToList);
+    document.getElementById('btnCancel').addEventListener('click', async () => await backToList());
   };
 
   const backToList = async () => {
