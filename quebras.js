@@ -260,6 +260,7 @@ const quebrasUI = (() => {
     }
 
     const quebrasOrdenadas = await quebrasManager.getQuebrasPorMesOrdenadas(filtroAno, filtroMes);
+    const todasQuebras = await quebrasManager.getQuebrasPorMes(filtroAno, filtroMes);
 
     let html = `
       <div class="filtro-container">
@@ -277,7 +278,7 @@ const quebrasUI = (() => {
     html += '<div class="quebras-list"><ul>';
     
     quebrasOrdenadas.forEach(item => {
-      const registros = quebrasManager.getQuebrasPorMes(filtroAno, filtroMes).filter(q => q.funcionarioNome === item.nome);
+      const registros = todasQuebras.filter(q => q.funcionario_nome === item.nome);
       html += `
         <li class="quebra-item">
           <div class="quebra-info">
@@ -383,7 +384,6 @@ const quebrasUI = (() => {
   const showAddQuebraPage = async () => {
     try {
       console.log('🔵 showAddQuebraPage iniciado');
-      alert('showAddQuebraPage foi chamado!');
       
       const panelBody = document.querySelector('.panel-body');
       const panelHeader = document.querySelector('.panel-header');
@@ -393,12 +393,10 @@ const quebrasUI = (() => {
       
       if (!panelBody || !panelHeader) {
         console.error('❌ panelBody ou panelHeader não encontrado');
-        alert('ERRO: panelBody ou panelHeader não encontrado!');
         return;
       }
 
       console.log('✅ Elementos encontrados');
-      alert('Elementos encontrados, continuando...');
       
       // Atualizar título da página
       const pageTitle = document.querySelector('.page-title');
