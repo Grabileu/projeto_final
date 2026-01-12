@@ -338,31 +338,41 @@ const FaltasUI = (() => {
   };
 
   const showAddFaltaPage = async () => {
-    const panelBody = document.querySelector('.panel-body');
-    const panelHeader = document.querySelector('.panel-header');
-    
-    const actionsDiv = panelHeader.querySelector('.actions');
-    if (actionsDiv) actionsDiv.style.display = 'none';
-    const h2 = panelHeader.querySelector('h2');
-    if (h2) h2.style.display = 'none';
+    try {
+      console.log('showAddFaltaPage iniciado');
+      const panelBody = document.querySelector('.panel-body');
+      const panelHeader = document.querySelector('.panel-header');
+      
+      if (!panelBody || !panelHeader) {
+        console.error('panelBody ou panelHeader não encontrado');
+        return;
+      }
+      
+      const actionsDiv = panelHeader.querySelector('.actions');
+      if (actionsDiv) actionsDiv.style.display = 'none';
+      const h2 = panelHeader.querySelector('h2');
+      if (h2) h2.style.display = 'none';
 
-    const funcionarios = await FuncionariosManager.getFuncionarios();
-    let optionsFuncionarios = '<option value="">Selecione um funcionário</option>';
-    
-    funcionarios.forEach(f => {
-      optionsFuncionarios += `<option value="${f.id}|${f.nome}">${f.nome}</option>`;
-    });
-    
-    panelBody.innerHTML = `
-      <div class="form-page">
-        <div class="form-header">
-          <h2>Registrar falta ou atestado</h2>
-        </div>
-        
-        <form id="formFalta" class="form-large">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="funcionario">Funcionário *</label>
+      console.log('Buscando funcionários...');
+      const funcionarios = await FuncionariosManager.getFuncionarios();
+      console.log('Funcionários carregados:', funcionarios.length);
+      
+      let optionsFuncionarios = '<option value="">Selecione um funcionário</option>';
+      
+      funcionarios.forEach(f => {
+        optionsFuncionarios += `<option value="${f.id}|${f.nome}">${f.nome}</option>`;
+      });
+      
+      panelBody.innerHTML = `
+        <div class="form-page">
+          <div class="form-header">
+            <h2>Registrar falta ou atestado</h2>
+          </div>
+          
+          <form id="formFalta" class="form-large">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="funcionario">Funcionário *</label>
               <select id="funcionario" name="funcionario" required>
                 ${optionsFuncionarios}
               </select>
@@ -431,6 +441,12 @@ const FaltasUI = (() => {
     });
 
     document.getElementById('btnCancel').addEventListener('click', async () => await backToList());
+    
+    console.log('showAddFaltaPage concluído com sucesso');
+    } catch (error) {
+      console.error('Erro em showAddFaltaPage:', error);
+      alert('Erro ao carregar formulário de faltas. Verifique o console.');
+    }
   };
 
   const showEditFaltaPage = async (id) => {
