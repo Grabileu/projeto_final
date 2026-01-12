@@ -202,6 +202,15 @@ const fornecedoresUI = (() => {
     });
   };
 
+  const backToList = async () => {
+    const panelHeader = document.querySelector('.panel-header');
+    const actionsDiv = panelHeader.querySelector('.actions');
+    if (actionsDiv) actionsDiv.style.display = 'block';
+    const h2 = panelHeader.querySelector('h2');
+    if (h2) h2.style.display = 'block';
+    await renderLista();
+  };
+
   const showAddFornecedorPage = () => {
     const panelBody = document.querySelector('.panel-body');
     const panelHeader = document.querySelector('.panel-header');
@@ -429,15 +438,6 @@ const fornecedoresUI = (() => {
     });
 
     document.getElementById('btnCancel').addEventListener('click', async () => await backToList());
-  };
-
-  const backToList = async () => {
-    const panelHeader = document.querySelector('.panel-header');
-    const actionsDiv = panelHeader.querySelector('.actions');
-    if (actionsDiv) actionsDiv.style.display = 'block';
-    const h2 = panelHeader.querySelector('h2');
-    if (h2) h2.style.display = 'block';
-    await renderLista();
   };
 
   return {

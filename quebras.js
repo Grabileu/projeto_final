@@ -371,6 +371,15 @@ const quebrasUI = (() => {
     });
   };
 
+  const backToList = async () => {
+    const panelHeader = document.querySelector('.panel-header');
+    const actionsDiv = panelHeader.querySelector('.actions');
+    if (actionsDiv) actionsDiv.style.display = 'block';
+    const h2 = panelHeader.querySelector('h2');
+    if (h2) h2.style.display = 'block';
+    await renderLista();
+  };
+
   const showAddQuebraPage = async () => {
     try {
       console.log('showAddQuebraPage iniciado');
@@ -761,16 +770,8 @@ const quebrasUI = (() => {
     });
 
     // Inicializar a exibição correta do comprovanteRow
+    // Inicializar a exibição correta do comprovanteRow
     comprovanteRow.style.display = tiposComComprovante.includes(tipoSelect.value) ? 'block' : 'none';
-  };
-
-  const backToList = async () => {
-    const panelHeader = document.querySelector('.panel-header');
-    const actionsDiv = panelHeader.querySelector('.actions');
-    if (actionsDiv) actionsDiv.style.display = 'block';
-    const h2 = panelHeader.querySelector('h2');
-    if (h2) h2.style.display = 'block';
-    await renderLista();
   };
 
   return {
