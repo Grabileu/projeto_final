@@ -59,9 +59,12 @@ CREATE TABLE IF NOT EXISTS quebras_caixa (
   id TEXT PRIMARY KEY,
   funcionario_id TEXT NOT NULL,
   funcionario_nome TEXT NOT NULL,
+  tipo TEXT,
   valor DECIMAL(10,2) NOT NULL,
   data DATE NOT NULL,
   descricao TEXT,
+  situacao TEXT,
+  comprovante TEXT,
   data_criacao TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

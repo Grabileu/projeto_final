@@ -291,10 +291,10 @@ const FaltasUI = (() => {
   const attachFiltroEvents = () => {
     const btnAplicar = document.getElementById('btnAplicarFiltro');
     if (btnAplicar) {
-      btnAplicar.addEventListener('click', () => {
+      btnAplicar.addEventListener('click', async () => {
         filtroMes = parseInt(document.getElementById('filtroMes').value);
         filtroAno = parseInt(document.getElementById('filtroAno').value);
-        renderLista();
+        await renderLista();
       });
     }
   };
@@ -328,7 +328,7 @@ const FaltasUI = (() => {
         const id = btn.getAttribute('data-id');
         if (confirm('Tem certeza que deseja excluir este registro?')) {
           await FaltasManager.deleteFalta(id);
-          renderLista();
+          await renderLista();
         }
       });
     });
@@ -524,10 +524,10 @@ const FaltasUI = (() => {
     document.getElementById('btnCancel').addEventListener('click', backToList);
   };
 
-  const backToList = () => {
+  const backToList = async () => {
     const panelHeader = document.querySelector('.panel-header');
     panelHeader.style.display = 'flex';
-    renderLista();
+    await renderLista();
   };
 
   return {

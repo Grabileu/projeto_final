@@ -147,12 +147,12 @@ const FuncionariosUI = (() => {
 
     // Event listeners para excluir
     document.querySelectorAll('.btn-delete-action').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', async (e) => {
         e.stopPropagation();
         const id = btn.getAttribute('data-id');
         if (confirm('Tem certeza que deseja excluir este funcionário?')) {
-          FuncionariosManager.deleteFuncionario(id);
-          renderLista();
+          await FuncionariosManager.deleteFuncionario(id);
+          await renderLista();
         }
       });
     });
@@ -226,7 +226,7 @@ const FuncionariosUI = (() => {
       e.target.value = valor;
     });
 
-    document.getElementById('formFuncionario').addEventListener('submit', (e) => {
+    document.getElementById('formFuncionario').addEventListener('submit', async (e) => {
       e.preventDefault();
       const nome = document.getElementById('nome').value.trim();
       const cargo = document.getElementById('cargo').value.trim();
@@ -245,8 +245,8 @@ const FuncionariosUI = (() => {
         return;
       }
 
-      FuncionariosManager.addFuncionario(nome, cargo, dataAdmissao, cpf, salario);
-      backToList();
+      await FuncionariosManager.addFuncionario(nome, cargo, dataAdmissao, cpf, salario);
+      await backToList();
     });
 
     document.getElementById('btnCancel').addEventListener('click', backToList);
@@ -316,7 +316,7 @@ const FuncionariosUI = (() => {
       e.target.value = valor;
     });
 
-    document.getElementById('formFuncionario').addEventListener('submit', (e) => {
+    document.getElementById('formFuncionario').addEventListener('submit', async (e) => {
       e.preventDefault();
       const nome = document.getElementById('nome').value.trim();
       const cargo = document.getElementById('cargo').value.trim();
@@ -335,17 +335,17 @@ const FuncionariosUI = (() => {
         return;
       }
 
-      FuncionariosManager.updateFuncionario(id, nome, cargo, dataAdmissao, cpf, salario);
-      backToList();
+      await FuncionariosManager.updateFuncionario(id, nome, cargo, dataAdmissao, cpf, salario);
+      await backToList();
     });
 
     document.getElementById('btnCancel').addEventListener('click', backToList);
   };
 
-  const backToList = () => {
+  const backToList = async () => {
     const panelHeader = document.querySelector('.panel-header');
     panelHeader.style.display = 'flex';
-    renderLista();
+    await renderLista();
   };
 
   return {

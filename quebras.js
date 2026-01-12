@@ -337,10 +337,10 @@ const quebrasUI = (() => {
     const selectAno = document.getElementById('filtroAno');
 
     if (btnAplicar) {
-      btnAplicar.addEventListener('click', () => {
+      btnAplicar.addEventListener('click', async () => {
         filtroAno = parseInt(selectAno.value);
         filtroMes = parseInt(selectMes.value);
-        renderLista();
+        await renderLista();
       });
     }
   };
@@ -355,12 +355,12 @@ const quebrasUI = (() => {
     });
 
     document.querySelectorAll('.btn-delete-quebra').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', async (e) => {
         e.stopPropagation();
         const id = btn.getAttribute('data-id');
         if (confirm('Tem certeza que deseja excluir este vale?')) {
-          quebrasManager.deleteQuebra(id);
-          renderLista();
+          await quebrasManager.deleteQuebra(id);
+          await renderLista();
         }
       });
     });
@@ -524,7 +524,7 @@ const quebrasUI = (() => {
       });
     };
 
-    formQuebra.addEventListener('submit', (e) => {
+    formQuebra.addEventListener('submit', async (e) => {
       e.preventDefault();
       const funcionarioValue = document.getElementById('funcionario').value;
       const tipo = document.getElementById('tipo').value;
@@ -563,14 +563,14 @@ const quebrasUI = (() => {
       const [funcionarioId, funcionarioNome] = funcionarioValue.split('|');
       
       // Adicionar o vale principal
-      quebrasManager.addQuebra(funcionarioId, funcionarioNome, tipo, valor, data, descricao, situacao, comprovante);
+      await quebrasManager.addQuebra(funcionarioId, funcionarioNome, tipo, valor, data, descricao, situacao, comprovante);
       
       // Adicionar valores adicionais como vales separados
-      valoresAdicionais.forEach(valorAdicional => {
-        quebrasManager.addQuebra(funcionarioId, funcionarioNome, tipo, valorAdicional, data, 'Perda adicional na mesma finalizadora', null, comprovante);
-      });
+      for (const valorAdicional of valoresAdicionais) {
+        await quebrasManager.addQuebra(funcionarioId, funcionarioNome, tipo, valorAdicional, data, 'Perda adicional na mesma finalizadora', null, comprovante);
+      }
 
-      backToList();
+      await backToList();
     });
 
     document.getElementById('btnCancel').addEventListener('click', backToList);
@@ -679,7 +679,7 @@ const quebrasUI = (() => {
       </div>
     `;
 
-    document.getElementById('formQuebra').addEventListener('submit', (e) => {
+    document.getElementById('formQuebra').addEventListener('submit', async (e) => {
       e.preventDefault();
       const funcionarioValue = document.getElementById('funcionario').value;
       const tipo = document.getElementById('tipo').value;
@@ -717,8 +717,8 @@ const quebrasUI = (() => {
       }
 
       const [funcionarioId, funcionarioNome] = funcionarioValue.split('|');
-      quebrasManager.updateQuebra(id, funcionarioId, funcionarioNome, tipo, valor, data, descricao, situacao, comprovante);
-      backToList();
+      await quebrasManager.updateQuebra(id, funcionarioId, funcionarioNome, tipo, valor, data, descricao, situacao, comprovante);
+      await backToList();
     });
 
     document.getElementById('btnCancel').addEventListener('click', backToList);
@@ -737,10 +737,10 @@ const quebrasUI = (() => {
     comprovanteRow.style.display = tiposComComprovante.includes(tipoSelect.value) ? 'block' : 'none';
   };
 
-  const backToList = () => {
+  const backToList = async () => {
     const panelHeader = document.querySelector('.panel-header');
     panelHeader.style.display = 'flex';
-    renderLista();
+    await renderLista();
   };
 
   return {

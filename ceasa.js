@@ -1,87 +1,122 @@
 // ceasa.js
 const ceasaManager = (() => {
-  const STORAGE_KEY = 'ceasa_data';
+  const getCompras = async () => {
+    const { data, error } = await window.supabaseClient
+      .from('ceasa_compras')
+      .select('*')
+      .order('data', { ascending: false });
 
-  const getCompras = () => {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+    if (error) {
+      console.error('Erro ao buscar compras:', error);
+      return [];
+    }
+
+    return data || [];
   };
 
-  const saveCompras = (compras) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(compras));
-  };
-
-  const addCompra = (produto, quantidade, unidade, valor, data, descricao = '', fornecedorId = null, caixas = null, tipo = 'caixa') => {
-    const compras = getCompras();
-    const id = Date.now().toString();
+  const addCompra = async (produto, quantidade, unidade, valor, data, descricao = '', fornecedorId = null, caixas = null, tipo = 'caixa') => {
     const novaCompra = {
-      id,
+      id: Date.now().toString(),
       produto,
       quantidade: parseFloat(quantidade),
       unidade,
       valor: parseFloat(valor),
       data,
       descricao,
-      fornecedorId: fornecedorId || null,
+      fornecedor_id: fornecedorId || null,
       caixas: caixas != null ? caixas : null,
       tipo: tipo || 'caixa',
-      dataCriacao: new Date().toLocaleDateString('pt-BR')
+      data_criacao: new Date().toISOString()
     };
-    compras.push(novaCompra);
-    saveCompras(compras);
-    return novaCompra;
+
+    const { data: inserted, error } = await window.supabaseClient
+      .from('ceasa_compras')
+      .insert([novaCompra])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Erro ao adicionar compra:', error);
+      alert('Erro ao salvar compra no banco de dados');
+      return null;
+    }
+
+    return inserted;
   };
 
-  const updateCompra = (id, produto, quantidade, unidade, valor, data, descricao = '', fornecedorId = null, caixas = null, tipo = 'caixa') => {
-    const compras = getCompras();
-    const index = compras.findIndex(c => c.id === id);
-    if (index !== -1) {
-      compras[index] = {
-        ...compras[index],
+  const updateCompra = async (id, produto, quantidade, unidade, valor, data, descricao = '', fornecedorId = null, caixas = null, tipo = 'caixa') => {
+    const { data: updated, error } = await window.supabaseClient
+      .from('ceasa_compras')
+      .update({
         produto,
         quantidade: parseFloat(quantidade),
         unidade,
         valor: parseFloat(valor),
         data,
         descricao,
-        fornecedorId: fornecedorId || compras[index].fornecedorId || null,
-        caixas: caixas != null ? caixas : compras[index].caixas || null,
-        tipo: tipo || compras[index].tipo || 'caixa'
-      };
-      saveCompras(compras);
-      return compras[index];
+        fornecedor_id: fornecedorId || null,
+        caixas: caixas != null ? caixas : null,
+        tipo: tipo || 'caixa'
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Erro ao atualizar compra:', error);
+      alert('Erro ao atualizar compra no banco de dados');
+      return null;
     }
-    return null;
+
+    return updated;
   };
 
-  const deleteCompra = (id) => {
-    const compras = getCompras();
-    const filtradas = compras.filter(c => c.id !== id);
-    saveCompras(filtradas);
+  const deleteCompra = async (id) => {
+    const { error } = await window.supabaseClient
+      .from('ceasa_compras')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Erro ao excluir compra:', error);
+      alert('Erro ao excluir compra do banco de dados');
+      return false;
+    }
+
     return true;
   };
 
-  const getCompraById = (id) => {
-    const compras = getCompras();
-    return compras.find(c => c.id === id);
+  const getCompraById = async (id) => {
+    const { data, error } = await window.supabaseClient
+      .from('ceasa_compras')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error('Erro ao buscar compra:', error);
+      return null;
+    }
+
+    return data;
   };
 
-  const getComprasOrdenadas = () => {
-    const compras = getCompras();
+  const getComprasOrdenadas = async () => {
+    const compras = await getCompras();
     return compras.sort((a, b) => new Date(b.data) - new Date(a.data));
   };
 
-  const getComprasPorMes = (ano, mes) => {
-    const compras = getCompras();
+  const getComprasPorMes = async (ano, mes) => {
+    const compras = await getCompras();
     return compras.filter(c => {
       const [year, month] = c.data.split('-');
       return parseInt(year) === ano && parseInt(month) === mes;
     });
   };
 
-  const getTotalPorMes = (ano, mes) => {
-    const compras = getComprasPorMes(ano, mes);
-    return compras.reduce((total, c) => total + (parseFloat(c.valor) * c.quantidade), 0);
+  const getTotalPorMes = async (ano, mes) => {
+    const compras = await getComprasPorMes(ano, mes);
+    return compras.reduce((total, c) => total + (parseFloat(c.valor) * c.caixas), 0);
   };
 
   return {
@@ -280,22 +315,23 @@ const ceasaUI = (() => {
     ceasaContent.innerHTML = html;
 
     document.querySelectorAll('.ceasa-dia').forEach(el => {
-      el.addEventListener('click', () => {
+      el.addEventListener('click', async () => {
         diaSelected = el.getAttribute('data-dia');
-        renderFornecedores();
+        await renderFornecedores();
       });
       el.addEventListener('mouseover', () => { el.style.background = '#f3f4f6'; el.style.borderColor = '#3B82F6'; });
       el.addEventListener('mouseout', () => { el.style.background = '#fff'; el.style.borderColor = '#e5e7eb'; });
     });
   };
 
-  const renderFornecedores = () => {
-    const compras = ceasaManager.getCompras().filter(c => c.data === diaSelected);
+  const renderFornecedores = async () => {
+    const compras = await ceasaManager.getCompras();
+    const comprasFiltradasDia = compras.filter(c => c.data === diaSelected);
     const ceasaContent = document.getElementById('ceasaContent');
 
     const fornecedoresMap = {};
-    compras.forEach(c => {
-      const fid = c.fornecedorId || 'sem-fornecedor';
+    comprasFiltradasDia.forEach(c => {
+      const fid = c.fornecedor_id || c.fornecedorId || 'sem-fornecedor';
       if (!fornecedoresMap[fid]) {
         fornecedoresMap[fid] = {
           id: fid,
@@ -336,23 +372,24 @@ const ceasaUI = (() => {
     html += '</ul></div>';
     ceasaContent.innerHTML = html;
 
-    document.getElementById('btnVoltar').addEventListener('click', renderDias);
+    document.getElementById('btnVoltar').addEventListener('click', async () => await renderDias());
 
     document.querySelectorAll('.ceasa-fornecedor').forEach((el, idx) => {
-      el.addEventListener('click', () => {
+      el.addEventListener('click', async () => {
         fornecedorSelected = fornecedores[idx].id;
-        renderProdutos();
+        await renderProdutos();
       });
       el.addEventListener('mouseover', () => { el.style.background = '#f3f4f6'; el.style.borderColor = '#3B82F6'; });
       el.addEventListener('mouseout', () => { el.style.background = '#fff'; el.style.borderColor = '#e5e7eb'; });
     });
   };
 
-  const renderProdutos = () => {
-    const compras = ceasaManager.getCompras().filter(c => c.data === diaSelected && (c.fornecedorId || 'sem-fornecedor') === fornecedorSelected);
+  const renderProdutos = async () => {
+    const compras = await ceasaManager.getCompras();
+    const comprasFiltradasProdutos = compras.filter(c => c.data === diaSelected && (c.fornecedor_id || c.fornecedorId || 'sem-fornecedor') === fornecedorSelected);
     const ceasaContent = document.getElementById('ceasaContent');
     const diaFormatado = formatarData(diaSelected);
-    const fornecedorNome = compras[0]?.descricao?.match(/\[Fornecedor: (.+?)\]/)?.[1] || 'Sem fornecedor';
+    const fornecedorNome = comprasFiltradasProdutos[0]?.descricao?.match(/\[Fornecedor: (.+?)\]/)?.[1] || 'Sem fornecedor';
 
     let html = `
       <div style="margin-bottom: 16px;">
@@ -398,7 +435,7 @@ const ceasaUI = (() => {
     html += '</ul></div>';
     ceasaContent.innerHTML = html;
 
-    document.getElementById('btnVoltar').addEventListener('click', renderFornecedores);
+    document.getElementById('btnVoltar').addEventListener('click', async () => await renderFornecedores());
     attachEditarExcluirEvents();
   };
 
@@ -436,12 +473,12 @@ const ceasaUI = (() => {
     });
 
     document.querySelectorAll('.btn-delete-ceasa').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', async (e) => {
         e.stopPropagation();
         const id = btn.getAttribute('data-id');
         if (confirm('Tem certeza que deseja excluir esta compra?')) {
-          ceasaManager.deleteCompra(id);
-          renderLista();
+          await ceasaManager.deleteCompra(id);
+          await renderLista();
         }
       });
     });
@@ -450,10 +487,10 @@ const ceasaUI = (() => {
   const attachFiltroEvents = () => {
     const btnAplicar = document.getElementById('btnAplicarFiltro');
     if (btnAplicar) {
-      btnAplicar.addEventListener('click', () => {
+      btnAplicar.addEventListener('click', async () => {
         filtroMes = parseInt(document.getElementById('filtroMes').value);
         filtroAno = parseInt(document.getElementById('filtroAno').value);
-        renderLista();
+        await renderLista();
       });
     }
   };
@@ -799,7 +836,7 @@ const ceasaUI = (() => {
 
     renderProdutosCompra();
 
-    formCompra.addEventListener('submit', (e) => {
+    formCompra.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       if (produtosCompra.length === 0) {
@@ -813,13 +850,13 @@ const ceasaUI = (() => {
       const fornecedor = fornecedores.find(f => f.id === fornecedorId);
 
       // Salvar cada produto como uma compra separada
-      produtosCompra.forEach(p => {
+      for (const p of produtosCompra) {
         let descFinal = descricao;
         if (fornecedor) {
           descFinal = `[Fornecedor: ${fornecedor.nome}] ` + descricao;
         }
 
-        ceasaManager.addCompra(
+        await ceasaManager.addCompra(
           p.produto,
           p.quantidadeKg,
           'kg',
@@ -830,9 +867,9 @@ const ceasaUI = (() => {
           p.caixas,
           p.tipo || 'caixa'
         );
-      });
+      }
 
-      backToList();
+      await backToList();
     });
 
     document.getElementById('btnCancel').addEventListener('click', backToList);
@@ -992,7 +1029,7 @@ const ceasaUI = (() => {
 
     renderProdutosCompra();
 
-    formCompra.addEventListener('submit', (e) => {
+    formCompra.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const dataCompra = dataCompraInput.value;
@@ -1010,7 +1047,7 @@ const ceasaUI = (() => {
         descFinal = `[Fornecedor: ${fornecedor.nome}] ` + descricao;
       }
 
-      ceasaManager.updateCompra(
+      await ceasaManager.updateCompra(
         id,
         produtoAtual.produto,
         produtoAtual.quantidadeKg,
@@ -1023,16 +1060,16 @@ const ceasaUI = (() => {
         produtoAtual.tipo || 'caixa'
       );
 
-      backToList();
+      await backToList();
     });
 
     document.getElementById('btnCancel').addEventListener('click', backToList);
   };
 
-  const backToList = () => {
+  const backToList = async () => {
     const panelHeader = document.querySelector('.panel-header');
     panelHeader.style.display = 'flex';
-    renderLista();
+    await renderLista();
   };
 
   return {

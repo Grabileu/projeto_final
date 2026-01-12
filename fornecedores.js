@@ -181,18 +181,18 @@ const fornecedoresUI = (() => {
     html += '</ul></div>';
     panelBody.innerHTML = html;
 
-    document.getElementById('btnVoltar').addEventListener('click', renderLista);
+    document.getElementById('btnVoltar').addEventListener('click', async () => await renderLista());
 
     document.querySelector('.btn-edit-fornecedor').addEventListener('click', (e) => {
       e.stopPropagation();
       showEditFornecedorPage(id);
     });
 
-    document.querySelector('.btn-delete-fornecedor').addEventListener('click', (e) => {
+    document.querySelector('.btn-delete-fornecedor').addEventListener('click', async (e) => {
       e.stopPropagation();
       if (confirm('Tem certeza que deseja excluir este fornecedor?')) {
-        FornecedoresManager.deleteFornecedor(id);
-        renderLista();
+        await FornecedoresManager.deleteFornecedor(id);
+        await renderLista();
       }
     });
   };
@@ -285,7 +285,7 @@ const fornecedoresUI = (() => {
 
     renderProdutos();
 
-    document.getElementById('formFornecedor').addEventListener('submit', (e) => {
+    document.getElementById('formFornecedor').addEventListener('submit', async (e) => {
       e.preventDefault();
       const nome = document.getElementById('nome').value.trim();
       const contato = document.getElementById('contato').value.trim();
@@ -300,8 +300,8 @@ const fornecedoresUI = (() => {
         return;
       }
 
-      FornecedoresManager.addFornecedor(nome, contato, email, endereco, produtosValidos);
-      backToList();
+      await FornecedoresManager.addFornecedor(nome, contato, email, endereco, produtosValidos);
+      await backToList();
     });
 
     document.getElementById('btnCancel').addEventListener('click', backToList);
@@ -397,7 +397,7 @@ const fornecedoresUI = (() => {
 
     renderProdutos();
 
-    document.getElementById('formFornecedor').addEventListener('submit', (e) => {
+    document.getElementById('formFornecedor').addEventListener('submit', async (e) => {
       e.preventDefault();
       const nome = document.getElementById('nome').value.trim();
       const contato = document.getElementById('contato').value.trim();
@@ -411,17 +411,17 @@ const fornecedoresUI = (() => {
         return;
       }
 
-      FornecedoresManager.updateFornecedor(id, nome, contato, email, endereco, produtosValidos);
-      backToList();
+      await FornecedoresManager.updateFornecedor(id, nome, contato, email, endereco, produtosValidos);
+      await backToList();
     });
 
     document.getElementById('btnCancel').addEventListener('click', backToList);
   };
 
-  const backToList = () => {
+  const backToList = async () => {
     const panelHeader = document.querySelector('.panel-header');
     panelHeader.style.display = 'flex';
-    renderLista();
+    await renderLista();
   };
 
   return {
