@@ -15,7 +15,11 @@ const ceasaManager = (() => {
   };
 
   const addCompra = async (produto, quantidade, unidade, valor, data, descricao = '', fornecedorId = null, caixas = null, tipo = 'caixa', loja = null) => {
+    // Gerar um ID único
+    const id = 'compra_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    
     const novaCompra = {
+      id,
       produto,
       quantidade: parseFloat(quantidade),
       unidade,

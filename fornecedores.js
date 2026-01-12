@@ -15,7 +15,11 @@ const FornecedoresManager = (() => {
   };
 
   const addFornecedor = async (nome, contato, email, endereco, produtos) => {
+    // Gerar um UUID único para o novo fornecedor
+    const id = 'fornecedor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    
     const novoFornecedor = {
+      id,
       nome,
       contato,
       email,

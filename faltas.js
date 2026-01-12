@@ -15,7 +15,11 @@ const FaltasManager = (() => {
   };
 
   const addFalta = async (funcionarioId, funcionarioNome, tipo, data, justificada, justificativa) => {
+    // Gerar um ID único
+    const id = 'falta_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    
     const novaFalta = {
+      id,
       funcionario_id: funcionarioId,
       funcionario_nome: funcionarioNome,
       tipo,
