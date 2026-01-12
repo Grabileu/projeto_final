@@ -323,7 +323,7 @@ const ceasaUI = (() => {
     });
 
     html += '</ul></div>';
-    panelBody.innerHTML = html;
+    ceasaContent.innerHTML = html;
 
     document.getElementById('btnVoltar').addEventListener('click', renderDias);
 
@@ -339,7 +339,7 @@ const ceasaUI = (() => {
 
   const renderProdutos = () => {
     const compras = ceasaManager.getCompras().filter(c => c.data === diaSelected && (c.fornecedorId || 'sem-fornecedor') === fornecedorSelected);
-    const panelBody = document.querySelector('.panel-body');
+    const ceasaContent = document.getElementById('ceasaContent');
     const diaFormatado = formatarData(diaSelected);
     const fornecedorNome = compras[0]?.descricao?.match(/\[Fornecedor: (.+?)\]/)?.[1] || 'Sem fornecedor';
 
@@ -385,7 +385,7 @@ const ceasaUI = (() => {
     });
 
     html += '</ul></div>';
-    panelBody.innerHTML = html;
+    ceasaContent.innerHTML = html;
 
     document.getElementById('btnVoltar').addEventListener('click', renderFornecedores);
     attachEditarExcluirEvents();

@@ -105,6 +105,7 @@
       </nav>
 
       <div class="sidebar-footer">
+        <button class="btn-settings" id="btnSettings" title="Configurações do servidor" aria-label="Configurações">⚙️</button>
         <small class="version">v1.0</small>
       </div>
     </aside>
@@ -132,6 +133,68 @@
     </div>
   </div>
 
+  <!-- Modal de Configurações do Servidor -->
+  <div class="modal" id="serverConfigModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Configurações do Servidor</h2>
+        <button class="modal-close" aria-label="Fechar">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="config-section">
+          <label for="serverUrl">URL do Servidor:</label>
+          <div class="input-group">
+            <input type="text" id="serverUrl" placeholder="http://192.168.x.x:3001" />
+            <button type="button" class="btn secondary" id="btnUseLocalhost">Usar localhost</button>
+            <button type="button" class="btn secondary" id="btnUseDetected">Usar host atual</button>
+          </div>
+          <small class="help-text" id="hostHint">Exemplo: http://192.168.1.100:3001 — use o IP do computador onde o servidor está rodando.</small>
+        </div>
+
+        <div class="config-section">
+          <label for="enableServer">
+            <input type="checkbox" id="enableServer" />
+            <span>Ativar sincronização com servidor</span>
+          </label>
+        </div>
+
+        <div class="config-section">
+          <button class="btn primary" id="btnTestConnection">Testar Conexão</button>
+        </div>
+
+        <div class="status-box" id="statusBox" style="display: none;">
+          <div class="status-content">
+            <span class="status-indicator" id="statusIndicator"></span>
+            <div class="status-text">
+              <strong id="statusTitle">Status</strong>
+              <p id="statusMessage"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="config-section">
+          <button class="btn secondary" id="btnSyncNow">Sincronizar Agora</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn secondary" id="btnCloseModal">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay do Modal -->
+  <div class="modal-overlay" id="serverConfigOverlay"></div>
+
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const supabaseClient = supabase.createClient(
+      'https://vtwqaqvtzsnapeykikxr.supabase.co',
+      'sb_publishable_5xvqMgxplVeEQ58LqSvUbg_HYiikX9m'
+    )
+  </script>
+
+    <script src="dataSync.js"></script>
     <script src="funcionarios.js"></script>
   <script src="faltas.js"></script>
   <script src="quebras.js"></script>
@@ -156,6 +219,15 @@
         btn.addEventListener('click', (e) => {
           const sub = item.querySelector('.subnav');
           if (sub) {
+            // Fecha todos os outros submenus
+            navItems.forEach(otherItem => {
+              if (otherItem !== item) {
+                otherItem.classList.remove('open');
+                const otherBtn = otherItem.querySelector('.nav-btn');
+                if (otherBtn) otherBtn.setAttribute('aria-expanded', 'false');
+              }
+            });
+            
             const isOpen = item.classList.toggle('open');
             btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
             return;
@@ -252,6 +324,198 @@
 
       // Inicializar com o dashboard
       atualizarSecao('dashboard');
+    })();
+  </script>
+  <script>
+    // Modal de Configurações do Servidor
+    (function() {
+      const modal = document.getElementById('serverConfigModal');
+      const overlay = document.getElementById('serverConfigOverlay');
+      const btnSettings = document.getElementById('btnSettings');
+      const btnCloseModal = document.getElementById('btnCloseModal');
+      const modalClose = document.querySelector('.modal-close');
+      const serverUrlInput = document.getElementById('serverUrl');
+      const enableServerCheckbox = document.getElementById('enableServer');
+      const btnTestConnection = document.getElementById('btnTestConnection');
+      const btnSyncNow = document.getElementById('btnSyncNow');
+      const btnUseLocalhost = document.getElementById('btnUseLocalhost');
+      const btnUseDetected = document.getElementById('btnUseDetected');
+      const hostHint = document.getElementById('hostHint');
+      const statusBox = document.getElementById('statusBox');
+      const statusIndicator = document.getElementById('statusIndicator');
+      const statusTitle = document.getElementById('statusTitle');
+      const statusMessage = document.getElementById('statusMessage');
+
+      // Carregar configurações salvas
+      function loadSettings() {
+        const savedUrl = DataSync.getServerUrl();
+        const isEnabled = DataSync.isServerEnabled();
+        const host = (window.location && window.location.hostname) ? window.location.hostname : '';
+        const detectedUrl = host ? `http://${host}:3001` : '';
+        
+        if (savedUrl) {
+          serverUrlInput.value = savedUrl;
+        } else {
+          // Prefill padrão
+          serverUrlInput.value = detectedUrl || 'http://localhost:3001';
+        }
+        enableServerCheckbox.checked = isEnabled;
+
+        // Atualizar dica de host
+        if (host) {
+          hostHint.textContent = `Host atual detectado: ${host} — botão 'Usar host atual' preencherá ${detectedUrl}`;
+          btnUseDetected.disabled = false;
+        } else {
+          btnUseDetected.disabled = true;
+        }
+      }
+
+      // Abrir modal
+      function openModal() {
+        modal.classList.add('active');
+        overlay.classList.add('active');
+        loadSettings();
+      }
+
+      // Fechar modal
+      function closeModal() {
+        modal.classList.remove('active');
+        overlay.classList.remove('active');
+        statusBox.style.display = 'none';
+      }
+
+      // Mostrar status
+      function showStatus(title, message, type = 'info') {
+        statusBox.style.display = 'flex';
+        statusBox.className = 'status-box ' + type;
+        statusTitle.textContent = title;
+        statusMessage.textContent = message;
+      }
+
+      // Testar conexão
+      async function testConnection() {
+        const url = serverUrlInput.value.trim();
+        if (!url) {
+          showStatus('Erro', 'Digite a URL do servidor', 'error');
+          return;
+        }
+
+        btnTestConnection.disabled = true;
+        btnTestConnection.textContent = 'Testando...';
+
+        try {
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 5000);
+          const response = await fetch(url + '/health', { signal: controller.signal });
+          clearTimeout(timer);
+          if (response.ok) {
+            showStatus('Conexão Sucesso!', 'Servidor está respondendo corretamente', 'success');
+            DataSync.setServerUrl(url);
+          } else {
+            showStatus('Erro de Conexão', 'Servidor respondeu com erro: ' + response.status, 'error');
+          }
+        } catch (err) {
+          showStatus('Erro de Conexão', 'Não foi possível conectar ao servidor: ' + err.message, 'error');
+        } finally {
+          btnTestConnection.disabled = false;
+          btnTestConnection.textContent = 'Testar Conexão';
+        }
+      }
+
+      // Sincronizar agora
+      async function syncNow() {
+        if (!enableServerCheckbox.checked) {
+          showStatus('Aviso', 'Ative a sincronização primeiro', 'error');
+          return;
+        }
+
+        btnSyncNow.disabled = true;
+        btnSyncNow.textContent = 'Sincronizando...';
+        showStatus('Sincronizando', 'Enviando dados para o servidor...', 'info');
+
+        try {
+          // Sincronizar todas as categorias
+          const categorias = ['quebras', 'faltas', 'ceasa', 'funcionarios', 'fornecedores'];
+          let sucessos = 0;
+
+          for (const categoria of categorias) {
+            const dados = localStorage.getItem(categoria);
+            if (dados) {
+              try {
+                await DataSync.syncWithServer(categoria, JSON.parse(dados));
+                sucessos++;
+              } catch (e) {
+                console.warn('Erro ao sincronizar ' + categoria, e);
+              }
+            }
+          }
+
+          showStatus('Sincronização Concluída', sucessos + ' categorias sincronizadas com sucesso', 'success');
+        } catch (err) {
+          showStatus('Erro na Sincronização', err.message, 'error');
+        } finally {
+          btnSyncNow.disabled = false;
+          btnSyncNow.textContent = 'Sincronizar Agora';
+        }
+      }
+
+      // Event Listeners
+      btnSettings.addEventListener('click', openModal);
+      btnCloseModal.addEventListener('click', closeModal);
+      modalClose.addEventListener('click', closeModal);
+      overlay.addEventListener('click', closeModal);
+
+      enableServerCheckbox.addEventListener('change', () => {
+        if (enableServerCheckbox.checked) {
+          const url = serverUrlInput.value.trim();
+          if (url) {
+            DataSync.enableServer(url);
+            showStatus('Ativado', 'Sincronização com servidor ativada', 'success');
+          } else {
+            enableServerCheckbox.checked = false;
+            showStatus('Erro', 'Digite a URL do servidor', 'error');
+          }
+        } else {
+          DataSync.disableServer();
+          showStatus('Desativado', 'Sincronização com servidor desativada', 'info');
+        }
+      });
+
+      btnTestConnection.addEventListener('click', testConnection);
+      btnSyncNow.addEventListener('click', syncNow);
+      btnUseLocalhost.addEventListener('click', () => {
+        const url = 'http://localhost:3001';
+        serverUrlInput.value = url;
+        DataSync.setServerUrl(url);
+        showStatus('URL Atualizada', 'Usando localhost:3001', 'success');
+      });
+
+      btnUseDetected.addEventListener('click', () => {
+        const host = (window.location && window.location.hostname) ? window.location.hostname : '';
+        if (!host) {
+          showStatus('Sem host detectado', 'Abra a aplicação via http para detectar o host', 'error');
+          return;
+        }
+        const url = `http://${host}:3001`;
+        serverUrlInput.value = url;
+        DataSync.setServerUrl(url);
+        showStatus('URL Atualizada', `Usando ${url}`, 'success');
+      });
+
+      // Salvar URL ao sair do input
+      serverUrlInput.addEventListener('blur', () => {
+        const url = serverUrlInput.value.trim();
+        if (url) {
+          DataSync.setServerUrl(url);
+        }
+      });
+
+      // Fechar modal ao clicar fora
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeModal();
+        }
+      });
     })();
   </script>
 </body>

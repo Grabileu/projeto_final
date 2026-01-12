@@ -14,10 +14,33 @@ const dashboardUI = (() => {
     const btnAction = document.getElementById('btnAction');
     btnAction.style.display = 'none';
 
+    // Obter mês e ano atual
+    const hoje = new Date();
+    const mesAtual = String(hoje.getMonth() + 1).padStart(2, '0');
+    const anoAtual = String(hoje.getFullYear());
+    const filtroData = `${anoAtual}-${mesAtual}`;
+
+    // Função para filtrar por mês atual
+    const ehDoMesAtual = (dataStr) => {
+      if (!dataStr) return false;
+      // Suporta formatos: YYYY-MM-DD ou DD/MM/YYYY
+      if (dataStr.includes('-')) {
+        return dataStr.startsWith(filtroData);
+      } else if (dataStr.includes('/')) {
+        const [dia, mes, ano] = dataStr.split('/');
+        return `${ano}-${mes}` === filtroData;
+      }
+      return false;
+    };
+
     // Buscar dados
-    const quebras = quebrasManager.getQuebras();
-    const faltas = FaltasManager.getFaltas();
+    const allQuebras = quebrasManager.getQuebras();
+    const allFaltas = FaltasManager.getFaltas();
     const funcionarios = FuncionariosManager.getFuncionarios();
+
+    // Filtrar apenas dados do mês atual
+    const quebras = allQuebras.filter(q => ehDoMesAtual(q.data));
+    const faltas = allFaltas.filter(f => ehDoMesAtual(f.data));
 
     // Calcular maiores quebras por funcionário
     const quebrasPorFuncionario = {};
@@ -56,7 +79,7 @@ const dashboardUI = (() => {
     // Renderizar dashboard
     let html = `
       <div style="padding: 20px;">
-        <h2 style="margin-bottom: 30px; color: #111827;">Resumo Geral</h2>
+        <h2 style="margin-bottom: 30px; color: #111827;">Resumo Geral - ${hoje.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</h2>
         
         <!-- Cards de Resumo -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 40px;">

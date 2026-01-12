@@ -282,6 +282,7 @@ const relatóriosUI = (() => {
         const tipo = (quebra.tipo || '').toLowerCase();
         const valor = parseFloat(quebra.valor) || 0;
         const motivo = quebra.descricao || quebra.motivo || '';
+        const comprovante = quebra.comprovante;
 
         if (tipo === 'dinheiro') {
           // Se tem motivo personalizado, usa ele
@@ -290,7 +291,13 @@ const relatóriosUI = (() => {
           }
           // Caso contrário, gera automático
           return valor > 0 ? 'Faltou dinheiro' : 'Sobrou dinheiro';
-        } else if (tipo === 'débito' || tipo === 'debito' || tipo === 'crédito' || tipo === 'credito' || tipo === 'cartão' || tipo === 'cartao') {
+        } else if (tipo === 'pos' || tipo === 'pix' || tipo === 'débito' || tipo === 'debito' || tipo === 'crédito' || tipo === 'credito' || tipo === 'cartão' || tipo === 'cartao') {
+          // Se tem comprovante, mostra o valor do comprovante
+          if (comprovante && comprovante.valor) {
+            const valorComp = formatarMoeda(parseFloat(comprovante.valor) || 0);
+            return `Comprovante de ${valorComp}, Não entregue.`;
+          }
+          // Caso contrário, usa o valor da quebra
           return `Comprovante de ${formatarMoeda(Math.abs(valor))}, Não entregue.`;
         } else {
           return motivo || '-';
@@ -310,10 +317,10 @@ const relatóriosUI = (() => {
             <table style="width: 100%; border-collapse: collapse;">
               <thead>
                 <tr style="background: #f3f4f6; border-bottom: 2px solid #8b5cf6;">
-                  <th style="padding: 10px 8px; text-align: left; font-size: 0.85rem; color: #111827; font-weight: 700; border-right: 1px solid #d1d5db;">Data</th>
-                  <th style="padding: 10px 8px; text-align: left; font-size: 0.85rem; color: #111827; font-weight: 700; border-right: 1px solid #d1d5db;">Tipo</th>
-                  <th style="padding: 10px 8px; text-align: right; font-size: 0.85rem; color: #111827; font-weight: 700; border-right: 1px solid #d1d5db;">Valor</th>
-                  <th style="padding: 10px 8px; text-align: left; font-size: 0.85rem; color: #111827; font-weight: 700;">Observação</th>
+                  <th style="padding: 10px 8px; text-align: center; font-size: 0.85rem; color: #111827; font-weight: 700; border-right: 1px solid #d1d5db;">Data</th>
+                  <th style="padding: 10px 8px; text-align: center; font-size: 0.85rem; color: #111827; font-weight: 700; border-right: 1px solid #d1d5db;">Tipo</th>
+                  <th style="padding: 10px 8px; text-align: center; font-size: 0.85rem; color: #111827; font-weight: 700; border-right: 1px solid #d1d5db;">Valor</th>
+                  <th style="padding: 10px 8px; text-align: center; font-size: 0.85rem; color: #111827; font-weight: 700;">Observação</th>
                 </tr>
               </thead>
               <tbody>
@@ -421,7 +428,7 @@ const relatóriosUI = (() => {
             <title>Relatório de Quebras de Caixa</title>
             <style>
               * { margin: 0; padding: 0; font-family: Arial, sans-serif; }
-              @page { margin: 15mm; }
+              @page { margin: 15mm 15mm 30mm 15mm; }
               body { padding: 10mm; }
               table { width: 100%; border-collapse: collapse; margin: 20px 0; }
               th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
@@ -433,6 +440,7 @@ const relatóriosUI = (() => {
                 .day-block { page-break-inside: avoid; }
                 th { background: #f3f4f6 !important; }
                 .summary-func { page-break-inside: avoid; }
+                @page { margin: 15mm 15mm 30mm 15mm; }
               }
             </style>
           </head>
@@ -529,6 +537,14 @@ const relatóriosUI = (() => {
               <select id="filtroFuncionarioFaltas" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
                 <option value="__todos__">Todos</option>
                 ${nomesFuncionarios.map(n => `<option value="${n}">${n}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label for="filtroTipoFaltas" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Tipo</label>
+              <select id="filtroTipoFaltas" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
+                <option value="__todos__">Todos</option>
+                <option value="falta">Faltas</option>
+                <option value="atestado">Atestados</option>
               </select>
             </div>
           </div>
@@ -700,12 +716,12 @@ const relatóriosUI = (() => {
         const registrosDia = faltasAgrupadasPorData[data];
         inner += `
           <div style="margin-bottom: 20px; border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden;">
-            <div class="day-header" style="background: #fef2f2; padding: 12px; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #dc2626;">
+            <div style="padding: 8px 12px; background: #f9fafb; border-bottom: 0; font-weight: 600; color: #111827; font-size: 1rem;">
               ${formatarData(data)}
             </div>
-            <table style="width: 100%; border-collapse: collapse;">
+            <table style="width: 100%; border-collapse: collapse; margin-top: 0;">
               <thead>
-                <tr style="background: #f3f4f6; border-bottom: 1px solid #d1d5db;">
+                <tr style="background: #f3f4f6;">
                   <th style="padding: 12px; text-align: left; font-weight: 600; color: #111827; font-size: 0.9rem;">Funcionário</th>
                   <th style="padding: 12px; text-align: left; font-weight: 600; color: #111827; font-size: 0.9rem;">Tipo</th>
                   <th style="padding: 12px; text-align: left; font-weight: 600; color: #111827; font-size: 0.9rem;">Motivo</th>
@@ -770,13 +786,16 @@ const relatóriosUI = (() => {
       const inicio = document.getElementById('filtroInicioFaltas').value;
       const fim = document.getElementById('filtroFimFaltas').value;
       const funcSel = document.getElementById('filtroFuncionarioFaltas').value;
+      const tipoSel = document.getElementById('filtroTipoFaltas').value;
       
       const filtrados = faltas.filter(f => {
         const dataOK = (!inicio || f.data >= inicio) && (!fim || f.data <= fim);
         const func = funcionarios.find(fn => fn.id === f.funcionarioId);
         const funcionarioNome = func ? func.nome : (f.funcionarioNome || 'Funcionário não encontrado');
         const funcOK = (funcSel === '__todos__' || funcionarioNome === funcSel);
-        return dataOK && funcOK;
+        const tipo = f.tipo || 'falta';
+        const tipoOK = (tipoSel === '__todos__' || tipo === tipoSel);
+        return dataOK && funcOK && tipoOK;
       });
       relatorioContainer.innerHTML = construirRelatorioFaltas(filtrados);
       return filtrados;
@@ -786,6 +805,7 @@ const relatóriosUI = (() => {
       document.getElementById('filtroInicioFaltas').value = '';
       document.getElementById('filtroFimFaltas').value = '';
       document.getElementById('filtroFuncionarioFaltas').value = '__todos__';
+      document.getElementById('filtroTipoFaltas').value = '__todos__';
       relatorioContainer.innerHTML = construirRelatorioFaltas(faltas);
     };
 
@@ -802,7 +822,7 @@ const relatóriosUI = (() => {
             <title>Relatório de Faltas e Atestados</title>
             <style>
               * { margin: 0; padding: 0; font-family: Arial, sans-serif; }
-              @page { margin: 15mm; }
+              @page { margin: 15mm 15mm 30mm 15mm; }
               body { padding: 10mm; }
               table { width: 100%; border-collapse: collapse; margin: 20px 0; }
               th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
@@ -810,8 +830,8 @@ const relatóriosUI = (() => {
               @media print {
                 * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                 body, td, th, h2, h3, p, div, span { color: #111827 !important; }
-                .day-header { background: #fef2f2 !important; color: #dc2626 !important; }
                 th { background: #f3f4f6 !important; }
+                @page { margin: 15mm 15mm 30mm 15mm; }
               }
             </style>
           </head>
@@ -849,7 +869,7 @@ const relatóriosUI = (() => {
 
     document.getElementById('btnAplicarFiltrosFaltas').addEventListener('click', aplicarFiltrosFaltas);
     document.getElementById('btnLimparFiltrosFaltas').addEventListener('click', limparFiltrosFaltas);
-    ['filtroInicioFaltas','filtroFimFaltas','filtroFuncionarioFaltas'].forEach(id => {
+    ['filtroInicioFaltas','filtroFimFaltas','filtroFuncionarioFaltas','filtroTipoFaltas'].forEach(id => {
       const el = document.getElementById(id);
       el.addEventListener('change', aplicarFiltrosFaltas);
     });
@@ -1187,6 +1207,7 @@ const relatóriosUI = (() => {
             <title>Relatório de Ceasa</title>
             <style>
               * { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+              @page { margin: 15mm 15mm 30mm 15mm; }
               body { padding: 20px; }
               h3 { margin: 30px 0 15px 0; color: #111827; font-size: 1.1rem; }
               table { width: 100%; border-collapse: collapse; margin: 20px 0; }
@@ -1197,6 +1218,7 @@ const relatóriosUI = (() => {
                 .day-header { background: #eef2ff !important; border-left: 4px solid #6366f1 !important; }
                 .supplier-header { background: #f5f3ff !important; border-left: 4px solid #8b5cf6 !important; }
                 th { background: #f3f4f6 !important; }
+                @page { margin: 15mm 15mm 30mm 15mm; }
               }
               .total { margin-top: 30px; padding: 15px; background: #f0fdf4; border-left: 4px solid #059669; font-weight: bold; }
             </style>
@@ -1509,12 +1531,17 @@ const relatóriosUI = (() => {
             <title>Relatório de Funcionários</title>
             <style>
               * { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+              @page { margin: 15mm 15mm 30mm 15mm; }
               body { padding: 20px; }
               table { width: 100%; border-collapse: collapse; margin: 20px 0; }
               th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
               th { background: #f3f4f6; font-weight: bold; }
               tr:hover { background: #f9fafb; }
               .summary { margin-top: 30px; padding: 15px; background: #f0f4f8; border-left: 4px solid #3B82F6; }
+              @media print {
+                * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                @page { margin: 15mm 15mm 30mm 15mm; }
+              }
             </style>
           </head>
           <body>

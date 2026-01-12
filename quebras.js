@@ -11,7 +11,7 @@ const quebrasManager = (() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(quebras));
   };
 
-  const addQuebra = (funcionarioId, funcionarioNome, tipo, valor, data, descricao, situacao = null) => {
+  const addQuebra = (funcionarioId, funcionarioNome, tipo, valor, data, descricao, situacao = null, comprovante = null) => {
     const quebras = getQuebras();
     const id = Date.now().toString();
     const novaQuebra = {
@@ -23,6 +23,7 @@ const quebrasManager = (() => {
       data,
       descricao,
       situacao,
+      comprovante,
       dataCriacao: new Date().toLocaleDateString('pt-BR')
     };
     quebras.push(novaQuebra);
@@ -30,7 +31,7 @@ const quebrasManager = (() => {
     return novaQuebra;
   };
 
-  const updateQuebra = (id, funcionarioId, funcionarioNome, tipo, valor, data, descricao, situacao = null) => {
+  const updateQuebra = (id, funcionarioId, funcionarioNome, tipo, valor, data, descricao, situacao = null, comprovante = null) => {
     const quebras = getQuebras();
     const index = quebras.findIndex(q => q.id === id);
     if (index !== -1) {
@@ -42,7 +43,8 @@ const quebrasManager = (() => {
         valor,
         data,
         descricao,
-        situacao
+        situacao,
+        comprovante
       };
       saveQuebras(quebras);
       return quebras[index];
@@ -385,6 +387,23 @@ const quebrasUI = (() => {
             </div>
           </div>
 
+          <div class="form-row" id="comprovanteRow" style="display: none;">
+            <div class="form-group">
+              <label for="tipoComprovante">Tipo de comprovante *</label>
+              <select id="tipoComprovante" name="tipoComprovante">
+                <option value="">Selecione</option>
+                <option value="cartao">Cartão</option>
+                <option value="recibo">Recibo</option>
+                <option value="nota">Nota Fiscal</option>
+                <option value="outro">Outro</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="valorComprovante">Valor do comprovante (R$) *</label>
+              <input type="number" id="valorComprovante" name="valorComprovante" placeholder="0.00" step="0.01" min="0.01" />
+            </div>
+          </div>
+
           <div class="form-row">
             <div class="form-group">
               <label for="descricao">Descrição (opcional)</label>
@@ -411,15 +430,18 @@ const quebrasUI = (() => {
     let valoresAdicionais = [];
     const tipoSelect = document.getElementById('tipo');
     const situacaoRow = document.getElementById('situacaoRow');
+    const comprovanteRow = document.getElementById('comprovanteRow');
     const valoresAdicionaisContainer = document.getElementById('valoresAdicionaisContainer');
     const listaValoresAdicionais = document.getElementById('listaValoresAdicionais');
     const btnAdicionarValor = document.getElementById('btnAdicionarValor');
     const formQuebra = document.getElementById('formQuebra');
 
     const tiposComMultiplasPerdas = ['debito', 'credito', 'alimentacao', 'pos', 'cliente-prazo', 'pix'];
+    const tiposComComprovante = ['pos', 'pix', 'credito', 'debito'];
 
     tipoSelect.addEventListener('change', () => {
       situacaoRow.style.display = tipoSelect.value === 'dinheiro' ? 'block' : 'none';
+      comprovanteRow.style.display = tiposComComprovante.includes(tipoSelect.value) ? 'block' : 'none';
       valoresAdicionaisContainer.style.display = tiposComMultiplasPerdas.includes(tipoSelect.value) ? 'block' : 'none';
       valoresAdicionais = [];
       listaValoresAdicionais.innerHTML = '';
@@ -475,14 +497,31 @@ const quebrasUI = (() => {
         return;
       }
 
+      // Validar comprovante se tipo requer
+      let comprovante = null;
+      if (tiposComComprovante.includes(tipo)) {
+        const tipoComprovante = document.getElementById('tipoComprovante').value;
+        const valorComprovante = document.getElementById('valorComprovante').value;
+
+        if (!tipoComprovante || !valorComprovante) {
+          alert('Informe o tipo e valor do comprovante para este tipo de quebra!');
+          return;
+        }
+
+        comprovante = {
+          tipo: tipoComprovante,
+          valor: parseFloat(valorComprovante)
+        };
+      }
+
       const [funcionarioId, funcionarioNome] = funcionarioValue.split('|');
       
       // Adicionar o vale principal
-      quebrasManager.addQuebra(funcionarioId, funcionarioNome, tipo, valor, data, descricao, situacao);
+      quebrasManager.addQuebra(funcionarioId, funcionarioNome, tipo, valor, data, descricao, situacao, comprovante);
       
       // Adicionar valores adicionais como vales separados
       valoresAdicionais.forEach(valorAdicional => {
-        quebrasManager.addQuebra(funcionarioId, funcionarioNome, tipo, valorAdicional, data, 'Perda adicional na mesma finalizadora', null);
+        quebrasManager.addQuebra(funcionarioId, funcionarioNome, tipo, valorAdicional, data, 'Perda adicional na mesma finalizadora', null, comprovante);
       });
 
       backToList();
@@ -562,6 +601,23 @@ const quebrasUI = (() => {
             </div>
           </div>
 
+          <div class="form-row" id="comprovanteRow" style="display: none;">
+            <div class="form-group">
+              <label for="tipoComprovante">Tipo de comprovante *</label>
+              <select id="tipoComprovante" name="tipoComprovante">
+                <option value="">Selecione</option>
+                <option value="cartao" ${quebra.comprovante?.tipo === 'cartao' ? 'selected' : ''}>Cartão</option>
+                <option value="recibo" ${quebra.comprovante?.tipo === 'recibo' ? 'selected' : ''}>Recibo</option>
+                <option value="nota" ${quebra.comprovante?.tipo === 'nota' ? 'selected' : ''}>Nota Fiscal</option>
+                <option value="outro" ${quebra.comprovante?.tipo === 'outro' ? 'selected' : ''}>Outro</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="valorComprovante">Valor do comprovante (R$) *</label>
+              <input type="number" id="valorComprovante" name="valorComprovante" placeholder="0.00" value="${quebra.comprovante?.valor || ''}" step="0.01" min="0.01" />
+            </div>
+          </div>
+
           <div class="form-row">
             <div class="form-group">
               <label for="descricao">Descrição (opcional)</label>
@@ -596,8 +652,26 @@ const quebrasUI = (() => {
         return;
       }
 
+      // Validar comprovante se tipo requer
+      let comprovante = null;
+      const tiposComComprovante = ['pos', 'pix', 'credito', 'debito'];
+      if (tiposComComprovante.includes(tipo)) {
+        const tipoComprovante = document.getElementById('tipoComprovante').value;
+        const valorComprovante = document.getElementById('valorComprovante').value;
+
+        if (!tipoComprovante || !valorComprovante) {
+          alert('Informe o tipo e valor do comprovante para este tipo de quebra!');
+          return;
+        }
+
+        comprovante = {
+          tipo: tipoComprovante,
+          valor: parseFloat(valorComprovante)
+        };
+      }
+
       const [funcionarioId, funcionarioNome] = funcionarioValue.split('|');
-      quebrasManager.updateQuebra(id, funcionarioId, funcionarioNome, tipo, valor, data, descricao, situacao);
+      quebrasManager.updateQuebra(id, funcionarioId, funcionarioNome, tipo, valor, data, descricao, situacao, comprovante);
       backToList();
     });
 
@@ -605,10 +679,16 @@ const quebrasUI = (() => {
 
     const tipoSelect = document.getElementById('tipo');
     const situacaoRow = document.getElementById('situacaoRow');
+    const comprovanteRow = document.getElementById('comprovanteRow');
+    const tiposComComprovante = ['pos', 'pix', 'credito', 'debito'];
     
     tipoSelect.addEventListener('change', () => {
       situacaoRow.style.display = tipoSelect.value === 'dinheiro' ? 'block' : 'none';
+      comprovanteRow.style.display = tiposComComprovante.includes(tipoSelect.value) ? 'block' : 'none';
     });
+
+    // Inicializar a exibição correta do comprovanteRow
+    comprovanteRow.style.display = tiposComComprovante.includes(tipoSelect.value) ? 'block' : 'none';
   };
 
   const backToList = () => {
