@@ -369,3 +369,7 @@ const FuncionariosUI = (() => {
     backToList
   };
 })();
+
+// Exportar para acesso global
+window.FuncionariosManager = FuncionariosManager;
+window.FuncionariosUI = FuncionariosUI;

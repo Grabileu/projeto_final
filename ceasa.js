@@ -1088,3 +1088,7 @@ const ceasaUI = (() => {
     backToList
   };
 })();
+
+// Exportar para acesso global
+window.ceasaManager = ceasaManager;
+window.ceasaUI = ceasaUI;

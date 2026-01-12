@@ -565,3 +565,7 @@ const FaltasUI = (() => {
     backToList
   };
 })();
+
+// Exportar para acesso global
+window.FaltasManager = FaltasManager;
+window.FaltasUI = FaltasUI;

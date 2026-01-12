@@ -780,3 +780,7 @@ const quebrasUI = (() => {
     backToList
   };
 })();
+
+// Exportar para acesso global
+window.quebrasManager = quebrasManager;
+window.quebrasUI = quebrasUI;

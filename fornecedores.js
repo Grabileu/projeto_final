@@ -447,3 +447,7 @@ const fornecedoresUI = (() => {
     backToList
   };
 })();
+
+// Exportar para acesso global
+window.fornecedoresManager = fornecedoresManager;
+window.fornecedoresUI = fornecedoresUI;
