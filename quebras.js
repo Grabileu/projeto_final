@@ -611,11 +611,11 @@ const quebrasUI = (() => {
       await backToList();
     });
 
-    document.getE✅ showAddQuebraPage concluído com sucesso');
+    document.getElementById('btnCancel').addEventListener('click', async () => await backToList());
+    
+    console.log('✅ showAddQuebraPage concluído com sucesso');
     } catch (error) {
-      console.error('❌ AddQuebraPage concluído com sucesso');
-    } catch (error) {
-      console.error('Erro em showAddQuebraPage:', error);
+      console.error('❌ Erro em showAddQuebraPage:', error);
       alert('Erro ao carregar formulário de quebras. Verifique o console.');
     }
   };
