@@ -22,13 +22,13 @@ const FaltasManager = (() => {
 
   const addFalta = async (funcionarioId, funcionarioNome, tipo, data, justificada, justificativa) => {
     const novaFalta = {
-      funcionarioId,
-      funcionarioNome,
+      funcionario_id: funcionarioId,
+      funcionario_nome: funcionarioNome,
       tipo,
       data,
       justificada: justificada || false,
       justificativa: justificativa || '',
-      dataCriacao: new Date().toISOString()
+      data_criacao: new Date().toISOString()
     };
 
     const { data: inserted, error } = await window.supabaseClient
@@ -50,8 +50,8 @@ const FaltasManager = (() => {
     const { data: updated, error } = await window.supabaseClient
       .from('faltas')
       .update({
-        funcionarioId,
-        funcionarioNome,
+        funcionario_id: funcionarioId,
+        funcionario_nome: funcionarioNome,
         tipo,
         data,
         justificada: justificada || false,
@@ -104,7 +104,7 @@ const FaltasManager = (() => {
     const { data, error } = await window.supabaseClient
       .from('faltas')
       .select('*')
-      .eq('funcionarioId', funcionarioId);
+      .eq('funcionario_id', funcionarioId);
 
     if (error) {
       console.error('Erro ao buscar faltas por funcionário:', error);
@@ -137,15 +137,16 @@ const FaltasManager = (() => {
     const faltas = await getFaltasPorMes(ano, mes);
     const contagem = {};
     faltas.forEach(f => {
-      if (!contagem[f.funcionarioNome]) {
-        contagem[f.funcionarioNome] = { faltas: 0, atestados: 0, total: 0 };
+      const nome = f.funcionario_nome || f.funcionarioNome;
+      if (!contagem[nome]) {
+        contagem[nome] = { faltas: 0, atestados: 0, total: 0 };
       }
       if (f.tipo === 'atestado') {
-        contagem[f.funcionarioNome].atestados++;
+        contagem[nome].atestados++;
       } else {
-        contagem[f.funcionarioNome].faltas++;
+        contagem[nome].faltas++;
       }
-      contagem[f.funcionarioNome].total++;
+      contagem[nome].total++;
     });
     return contagem;
   };
@@ -204,7 +205,10 @@ const FaltasUI = (() => {
     
     for (const item of faltasOrdenadas) {
       const registros = await FaltasManager.getFaltasPorMes(filtroAno, filtroMes);
-      const registrosFuncionario = registros.filter(f => f.funcionarioNome === item.nome);
+      const registrosFuncionario = registros.filter(f => {
+        const nome = f.funcionario_nome || f.funcionarioNome;
+        return nome === item.nome;
+      });
       html += `
         <li class="falta-item">
           <div class="falta-info">
