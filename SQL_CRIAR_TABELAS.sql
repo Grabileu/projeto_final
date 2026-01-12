@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS funcionarios (
   data_admissao DATE,
   cpf TEXT,
   salario DECIMAL(10,2),
+  loja TEXT,
   data_criacao TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -88,6 +89,7 @@ CREATE TABLE IF NOT EXISTS ceasa_compras (
   fornecedor_id TEXT,
   caixas INTEGER,
   tipo TEXT,
+  loja TEXT,
   data_criacao TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
