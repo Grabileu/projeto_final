@@ -163,3 +163,6 @@ const dashboardUI = (() => {
     renderDashboard
   };
 })();
+
+// Exportar para acesso global
+window.dashboardUI = dashboardUI;

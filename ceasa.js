@@ -891,7 +891,7 @@ const ceasaUI = (() => {
 
     let fornecedoresOptions = '<option value="">Selecione fornecedor</option>';
     fornecedores.forEach(f => {
-      const sel = compra.fornecedorId === f.id ? 'selected' : '';
+      const sel = compra.fornecedor_id === f.id ? 'selected' : '';
       fornecedoresOptions += `<option value="${f.id}" ${sel}>${f.nome}</option>`;
     });
 

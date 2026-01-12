@@ -21,8 +21,8 @@ const relatóriosUI = (() => {
     const funcionarios = await FuncionariosManager.getFuncionarios();
 
     const obterNomeFuncionario = (q) => {
-      const func = funcionarios.find(f => f.id === q.funcionarioId);
-      return func ? func.nome : (q.funcionarioNome || 'Funcionário não encontrado');
+      const func = funcionarios.find(f => f.id === q.funcionario_id);
+      return func ? func.nome : (q.funcionario_nome || 'Funcionário não encontrado');
     };
 
     const nomesFuncionarios = Array.from(new Set(quebras.map(obterNomeFuncionario))).sort((a,b)=>a.localeCompare(b));
@@ -492,7 +492,7 @@ const relatóriosUI = (() => {
     const funcionarios = await FuncionariosManager.getFuncionarios();
     
     const nomesFuncionarios = Array.from(new Set(faltas.map(f => {
-      const func = funcionarios.find(fn => fn.id === f.funcionario_id || fn.id === f.funcionarioId);
+      const func = funcionarios.find(fn => fn.id === f.funcionario_id);
       return func ? func.nome : (f.funcionario_nome || f.funcionarioNome || 'Funcionário não encontrado');
     }))).sort((a,b)=>a.localeCompare(b));
 
@@ -597,8 +597,8 @@ const relatóriosUI = (() => {
               <tbody>
         `;
         registrosDia.forEach(f => {
-          const funcionario = funcionarios.find(func => func.id === f.funcionarioId);
-          const funcionarioNome = funcionario ? funcionario.nome : f.funcionarioNome || 'Funcionário não encontrado';
+          const funcionario = funcionarios.find(func => func.id === f.funcionario_id);
+          const funcionarioNome = funcionario ? funcionario.nome : f.funcionario_nome || 'Funcionário não encontrado';
           const justificada = f.justificada ? 'Sim' : 'Não';
           const tipo = f.tipo || 'falta';
           const tipoLabel = tipo === 'atestado' ? '📋 Atestado' : '❌ Falta';
@@ -731,8 +731,8 @@ const relatóriosUI = (() => {
               <tbody>
         `;
         registrosDia.forEach(f => {
-          const funcionario = funcionarios.find(func => func.id === f.funcionarioId);
-          const funcionarioNome = funcionario ? funcionario.nome : f.funcionarioNome || 'Funcionário não encontrado';
+          const funcionario = funcionarios.find(func => func.id === f.funcionario_id);
+          const funcionarioNome = funcionario ? funcionario.nome : f.funcionario_nome || 'Funcionário não encontrado';
           const justificada = f.justificada ? 'Sim' : 'Não';
           const tipo = f.tipo || 'falta';
           const tipoLabel = tipo === 'atestado' ? '📋 Atestado' : '❌ Falta';
@@ -790,7 +790,7 @@ const relatóriosUI = (() => {
       
       const filtrados = faltas.filter(f => {
         const dataOK = (!inicio || f.data >= inicio) && (!fim || f.data <= fim);
-        const func = funcionarios.find(fn => fn.id === f.funcionarioId);
+        const func = funcionarios.find(fn => fn.id === f.funcionario_id);
         const funcionarioNome = func ? func.nome : (f.funcionarioNome || 'Funcionário não encontrado');
         const funcOK = (funcSel === '__todos__' || funcionarioNome === funcSel);
         const tipo = f.tipo || 'falta';
@@ -844,8 +844,8 @@ const relatóriosUI = (() => {
     document.getElementById('btnExportarFaltas').addEventListener('click', () => {
       let csv = 'Data,Funcionário,Tipo,Motivo,Justificada\n';
       faltas.forEach(f => {
-        const funcionario = funcionarios.find(func => func.id === f.funcionarioId);
-        const funcionarioNome = funcionario ? funcionario.nome : f.funcionarioNome || 'Funcionário não encontrado';
+        const funcionario = funcionarios.find(func => func.id === f.funcionario_id);
+        const funcionarioNome = funcionario ? funcionario.nome : f.funcionario_nome || 'Funcionário não encontrado';
         const justificada = f.justificada ? 'Sim' : 'Não';
         const tipo = f.tipo || 'falta';
         const tipoLabel = tipo === 'atestado' ? 'Atestado' : 'Falta';
@@ -976,8 +976,8 @@ const relatóriosUI = (() => {
         `;
         const fornecedoresMap = {};
         comprasDia.forEach(c => {
-          const fid = c.fornecedorId || 'sem-fornecedor';
-          const fornObj = fornecedores.find(f => f.id === c.fornecedorId);
+          const fid = c.fornecedor_id || 'sem-fornecedor';
+          const fornObj = fornecedores.find(f => f.id === c.fornecedor_id);
           const nome = fornObj ? fornObj.nome : 'Sem fornecedor';
           if (!fornecedoresMap[fid]) fornecedoresMap[fid] = { nome, itens: [] };
           fornecedoresMap[fid].itens.push(c);
@@ -1112,8 +1112,8 @@ const relatóriosUI = (() => {
         `;
         const fornecedoresMap = {};
         comprasDia.forEach(c => {
-          const fid = c.fornecedorId || 'sem-fornecedor';
-          const fornObj = fornecedores.find(f => f.id === c.fornecedorId);
+          const fid = c.fornecedor_id || 'sem-fornecedor';
+          const fornObj = fornecedores.find(f => f.id === c.fornecedor_id);
           const nome = fornObj ? fornObj.nome : 'Sem fornecedor';
           if (!fornecedoresMap[fid]) fornecedoresMap[fid] = { nome, itens: [] };
           fornecedoresMap[fid].itens.push(c);
@@ -1178,7 +1178,7 @@ const relatóriosUI = (() => {
       
       const filtrados = compras.filter(c => {
         const dataOK = (!inicio || c.data >= inicio) && (!fim || c.data <= fim);
-        const fornObj = fornecedores.find(f => f.id === c.fornecedorId);
+        const fornObj = fornecedores.find(f => f.id === c.fornecedor_id);
         const fornecedorNome = fornObj ? fornObj.nome : 'Sem fornecedor';
         const fornOK = (fornSel === '__todos__' || fornecedorNome === fornSel);
         return dataOK && fornOK;
@@ -1238,7 +1238,7 @@ const relatóriosUI = (() => {
     document.getElementById('btnExportarCeasa').addEventListener('click', () => {
       let csv = 'Data,Fornecedor,Produto,Quantidade,Unidade,Caixas,Valor Total (R$)\n';
       compras.forEach(c => {
-        const fornecedor = fornecedores.find(f => f.id === c.fornecedorId);
+        const fornecedor = fornecedores.find(f => f.id === c.fornecedor_id);
         const fornecedorNome = fornecedor ? fornecedor.nome : 'Sem fornecedor';
         const valorTotal = (parseFloat(c.valor) || 0) * (c.caixas || 0);
         csv += `"${formatarData(c.data)}","${fornecedorNome}","${c.produto}","${c.quantidade}","${c.unidade}",${c.caixas},"${valorTotal.toFixed(2)}"\n`;
@@ -1353,8 +1353,8 @@ const relatóriosUI = (() => {
         <tbody>
       `;
       funcionarios.forEach(f => {
-        const faltasFuncionario = faltas.filter(ft => ft.funcionarioId === f.id).length;
-        const quebrasFuncionario = quebras.filter(q => q.funcionarioId === f.id);
+        const faltasFuncionario = faltas.filter(ft => ft.funcionario_id === f.id).length;
+        const quebrasFuncionario = quebras.filter(q => q.funcionario_id === f.id);
         const totalQuebras = quebrasFuncionario.reduce((sum, q) => sum + (parseFloat(q.valor) || 0), 0);
         html += `
           <tr style="border-bottom: 1px solid #e5e7eb;">
@@ -1366,6 +1366,7 @@ const relatóriosUI = (() => {
           </tr>
         `;
       });
+
       html += '</tbody></table>';
       const totalFuncionarios = funcionarios.length;
       const totalFaltas = faltas.length;
@@ -1462,8 +1463,8 @@ const relatóriosUI = (() => {
           <tbody>
         `;
         dados.forEach(f => {
-          const faltasFuncionario = faltas.filter(ft => ft.funcionarioId === f.id).length;
-          const quebrasFuncionario = quebras.filter(q => q.funcionarioId === f.id);
+          const faltasFuncionario = faltas.filter(ft => ft.funcionario_id === f.id).length;
+          const quebrasFuncionario = quebras.filter(q => q.funcionario_id === f.id);
           const totalQuebras = quebrasFuncionario.reduce((sum, q) => sum + (parseFloat(q.valor) || 0), 0);
           inner += `
             <tr style="border-bottom: 1px solid #e5e7eb;">
@@ -1559,8 +1560,8 @@ const relatóriosUI = (() => {
     document.getElementById('btnExportarFuncionarios').addEventListener('click', () => {
       let csv = 'Nome,Cargo,Faltas,Quebras,Total Quebras (R$)\n';
       funcionarios.forEach(f => {
-        const faltasFuncionario = faltas.filter(ft => ft.funcionarioId === f.id).length;
-        const quebrasFuncionario = quebras.filter(q => q.funcionarioId === f.id);
+        const faltasFuncionario = faltas.filter(ft => ft.funcionario_id === f.id).length;
+        const quebrasFuncionario = quebras.filter(q => q.funcionario_id === f.id);
         const totalQuebras = quebrasFuncionario.reduce((sum, q) => sum + (parseFloat(q.valor) || 0), 0);
         csv += `"${f.nome}","${f.cargo || '-'}",${faltasFuncionario},${quebrasFuncionario.length},"${totalQuebras.toFixed(2)}"\n`;
       });
@@ -1592,3 +1593,6 @@ const relatóriosUI = (() => {
     renderRelatórioFuncionários
   };
 })();
+
+// Exportar para acesso global
+window.relatóriosUI = relatóriosUI;
