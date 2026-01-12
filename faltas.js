@@ -2,79 +2,139 @@
 const FaltasManager = (() => {
   const STORAGE_KEY = 'faltas_data';
 
-  const getFaltas = () => {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+  const getFaltas = async () => {
+    const { data, error } = await window.supabaseClient
+      .from('faltas')
+      .select('*')
+      .order('data', { ascending: false });
+
+    if (error) {
+      console.error('Erro ao buscar faltas:', error);
+      return [];
+    }
+
+    return data || [];
   };
 
   const saveFaltas = (faltas) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(faltas));
   };
 
-  const addFalta = (funcionarioId, funcionarioNome, tipo, data, justificada, justificativa) => {
-    const faltas = getFaltas();
-    const id = Date.now().toString();
+  const addFalta = async (funcionarioId, funcionarioNome, tipo, data, justificada, justificativa) => {
     const novaFalta = {
-      id,
       funcionarioId,
       funcionarioNome,
       tipo,
       data,
       justificada: justificada || false,
       justificativa: justificativa || '',
-      dataCriacao: new Date().toLocaleDateString('pt-BR')
+      dataCriacao: new Date().toISOString()
     };
-    faltas.push(novaFalta);
-    saveFaltas(faltas);
-    return novaFalta;
+
+    const { data: inserted, error } = await window.supabaseClient
+      .from('faltas')
+      .insert([novaFalta])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Erro ao adicionar falta:', error);
+      alert('Erro ao salvar falta no banco de dados');
+      return null;
+    }
+
+    return inserted;
   };
 
-  const updateFalta = (id, funcionarioId, funcionarioNome, tipo, data, justificada, justificativa) => {
-    const faltas = getFaltas();
-    const index = faltas.findIndex(f => f.id === id);
-    if (index !== -1) {
-      faltas[index] = {
-        ...faltas[index],
+  const updateFalta = async (id, funcionarioId, funcionarioNome, tipo, data, justificada, justificativa) => {
+    const { data: updated, error } = await window.supabaseClient
+      .from('faltas')
+      .update({
         funcionarioId,
         funcionarioNome,
         tipo,
         data,
         justificada: justificada || false,
         justificativa: justificativa || ''
-      };
-      saveFaltas(faltas);
-      return faltas[index];
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Erro ao atualizar falta:', error);
+      alert('Erro ao atualizar falta no banco de dados');
+      return null;
     }
-    return null;
+
+    return updated;
   };
 
-  const deleteFalta = (id) => {
-    const faltas = getFaltas();
-    const filtradas = faltas.filter(f => f.id !== id);
-    saveFaltas(filtradas);
+  const deleteFalta = async (id) => {
+    const { error } = await window.supabaseClient
+      .from('faltas')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Erro ao excluir falta:', error);
+      alert('Erro ao excluir falta do banco de dados');
+      return false;
+    }
+
     return true;
   };
 
-  const getFaltaById = (id) => {
-    const faltas = getFaltas();
-    return faltas.find(f => f.id === id);
+  const getFaltaById = async (id) => {
+    const { data, error } = await window.supabaseClient
+      .from('faltas')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error('Erro ao buscar falta:', error);
+      return null;
+    }
+
+    return data;
   };
 
-  const getFaltasPorFuncionario = (funcionarioId) => {
-    const faltas = getFaltas();
-    return faltas.filter(f => f.funcionarioId === funcionarioId);
+  const getFaltasPorFuncionario = async (funcionarioId) => {
+    const { data, error } = await window.supabaseClient
+      .from('faltas')
+      .select('*')
+      .eq('funcionarioId', funcionarioId);
+
+    if (error) {
+      console.error('Erro ao buscar faltas por funcionário:', error);
+      return [];
+    }
+
+    return data || [];
   };
 
-  const getFaltasPorMes = (ano, mes) => {
-    const faltas = getFaltas();
-    return faltas.filter(f => {
-      const [year, month] = f.data.split('-');
-      return parseInt(year) === ano && parseInt(month) === mes;
-    });
+  const getFaltasPorMes = async (ano, mes) => {
+    const mesFormatado = String(mes).padStart(2, '0');
+    const inicioMes = `${ano}-${mesFormatado}-01`;
+    const fimMes = `${ano}-${mesFormatado}-31`;
+
+    const { data, error } = await window.supabaseClient
+      .from('faltas')
+      .select('*')
+      .gte('data', inicioMes)
+      .lte('data', fimMes);
+
+    if (error) {
+      console.error('Erro ao buscar faltas por mês:', error);
+      return [];
+    }
+
+    return data || [];
   };
 
-  const contarPorFuncionarioETipo = (ano, mes) => {
-    const faltas = getFaltasPorMes(ano, mes);
+  const contarPorFuncionarioETipo = async (ano, mes) => {
+    const faltas = await getFaltasPorMes(ano, mes);
     const contagem = {};
     faltas.forEach(f => {
       if (!contagem[f.funcionarioNome]) {
@@ -90,8 +150,8 @@ const FaltasManager = (() => {
     return contagem;
   };
 
-  const getFaltasOrdenadas = (ano, mes) => {
-    const contagem = contarPorFuncionarioETipo(ano, mes);
+  const getFaltasOrdenadas = async (ano, mes) => {
+    const contagem = await contarPorFuncionarioETipo(ano, mes);
     return Object.entries(contagem)
       .sort((a, b) => b[1].total - a[1].total)
       .map(([nome, dados]) => ({ nome, ...dados }));
@@ -120,9 +180,9 @@ const FaltasUI = (() => {
     return `${day}/${month}/${year}`;
   };
 
-  const renderLista = () => {
+  const renderLista = async () => {
     const panelBody = document.querySelector('.panel-body');
-    const faltasOrdenadas = FaltasManager.getFaltasOrdenadas(filtroAno, filtroMes);
+    const faltasOrdenadas = await FaltasManager.getFaltasOrdenadas(filtroAno, filtroMes);
 
     if (faltasOrdenadas.length === 0) {
       panelBody.innerHTML = `
@@ -142,8 +202,9 @@ const FaltasUI = (() => {
       <div class="faltas-list"><ul>
     `;
     
-    faltasOrdenadas.forEach(item => {
-      const registros = FaltasManager.getFaltasPorMes(filtroAno, filtroMes).filter(f => f.funcionarioNome === item.nome);
+    for (const item of faltasOrdenadas) {
+      const registros = await FaltasManager.getFaltasPorMes(filtroAno, filtroMes);
+      const registrosFuncionario = registros.filter(f => f.funcionarioNome === item.nome);
       html += `
         <li class="falta-item">
           <div class="falta-info">
@@ -162,7 +223,7 @@ const FaltasUI = (() => {
           </div>
         </li>
         <li class="falta-subitems" id="subitems-${item.nome}" style="display: none;">
-          ${registros.map(f => `
+          ${registrosFuncionario.map(f => `
             <div class="falta-subitem ${f.tipo}" style="border-left: 4px solid ${f.tipo === 'atestado' ? '#3b82f6' : '#ef4444'}; padding: 12px; margin: 10px 0; background: ${f.tipo === 'atestado' ? '#eff6ff' : '#fef2f2'}; border-radius: 6px;">
               <div class="subitem-info">
                 <div class="subitem-tipo">
@@ -179,7 +240,7 @@ const FaltasUI = (() => {
           `).join('')}
         </li>
       `;
-    });
+    }
 
     html += '</ul></div>';
     panelBody.innerHTML = html;
@@ -258,11 +319,11 @@ const FaltasUI = (() => {
     });
 
     document.querySelectorAll('.btn-delete-falta').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', async (e) => {
         e.stopPropagation();
         const id = btn.getAttribute('data-id');
         if (confirm('Tem certeza que deseja excluir este registro?')) {
-          FaltasManager.deleteFalta(id);
+          await FaltasManager.deleteFalta(id);
           renderLista();
         }
       });
@@ -341,7 +402,7 @@ const FaltasUI = (() => {
       document.getElementById('justificativaField').style.display = e.target.checked ? 'flex' : 'none';
     });
 
-    document.getElementById('formFalta').addEventListener('submit', (e) => {
+    document.getElementById('formFalta').addEventListener('submit', async (e) => {
       e.preventDefault();
       const funcionarioValue = document.getElementById('funcionario').value;
       const tipo = document.getElementById('tipo').value;
@@ -355,15 +416,15 @@ const FaltasUI = (() => {
       }
 
       const [funcionarioId, funcionarioNome] = funcionarioValue.split('|');
-      FaltasManager.addFalta(funcionarioId, funcionarioNome, tipo, data, justificada, justificativa);
+      await FaltasManager.addFalta(funcionarioId, funcionarioNome, tipo, data, justificada, justificativa);
       backToList();
     });
 
     document.getElementById('btnCancel').addEventListener('click', backToList);
   };
 
-  const showEditFaltaPage = (id) => {
-    const falta = FaltasManager.getFaltaById(id);
+  const showEditFaltaPage = async (id) => {
+    const falta = await FaltasManager.getFaltaById(id);
     if (!falta) return;
 
     const panelBody = document.querySelector('.panel-body');
@@ -438,7 +499,7 @@ const FaltasUI = (() => {
       document.getElementById('justificativaField').style.display = e.target.checked ? 'flex' : 'none';
     });
 
-    document.getElementById('formFalta').addEventListener('submit', (e) => {
+    document.getElementById('formFalta').addEventListener('submit', async (e) => {
       e.preventDefault();
       const funcionarioValue = document.getElementById('funcionario').value;
       const tipo = document.getElementById('tipo').value;
@@ -452,7 +513,7 @@ const FaltasUI = (() => {
       }
 
       const [funcionarioId, funcionarioNome] = funcionarioValue.split('|');
-      FaltasManager.updateFalta(id, funcionarioId, funcionarioNome, tipo, data, justificada, justificativa);
+      await FaltasManager.updateFalta(id, funcionarioId, funcionarioNome, tipo, data, justificada, justificativa);
       backToList();
     });
 
