@@ -19,8 +19,7 @@ const FornecedoresManager = (() => {
       nome,
       contato,
       email,
-      endereco,
-      telefone: contato
+      endereco
     };
 
     const { data, error } = await window.supabaseClient
@@ -46,8 +45,7 @@ const FornecedoresManager = (() => {
         nome,
         contato,
         email,
-        endereco,
-        telefone: contato
+        endereco
       })
       .eq('id', id)
       .select()
