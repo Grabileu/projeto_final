@@ -264,11 +264,16 @@
       if (btnAction) {
         btnAction.addEventListener('click', async () => {
           try {
+            console.log('🔵 Botão ADICIONAR clicado! currentSection:', currentSection);
+            
             if (currentSection === 'funcionario') {
+              console.log('Chamando FuncionariosUI.showCreatePage');
               FuncionariosUI.showCreatePage();
             } else if (currentSection === 'faltas') {
+              console.log('Chamando FaltasUI.showAddFaltaPage');
               await FaltasUI.showAddFaltaPage();
             } else if (currentSection === 'quebras') {
+              console.log('Chamando quebrasUI.showAddQuebraPage');
               await quebrasUI.showAddQuebraPage();
             } else if (currentSection === 'ceasa-compras') {
               ceasaUI.showAddCompraPage();
