@@ -205,7 +205,11 @@ const fornecedoresUI = (() => {
   const showAddFornecedorPage = () => {
     const panelBody = document.querySelector('.panel-body');
     const panelHeader = document.querySelector('.panel-header');
-    panelHeader.style.display = 'none';
+    
+    const actionsDiv = panelHeader.querySelector('.actions');
+    if (actionsDiv) actionsDiv.style.display = 'none';
+    const h2 = panelHeader.querySelector('h2');
+    if (h2) h2.style.display = 'none';
 
     panelBody.innerHTML = `
       <div class="form-page">
@@ -318,7 +322,11 @@ const fornecedoresUI = (() => {
 
     const panelBody = document.querySelector('.panel-body');
     const panelHeader = document.querySelector('.panel-header');
-    panelHeader.style.display = 'none';
+    
+    const actionsDiv = panelHeader.querySelector('.actions');
+    if (actionsDiv) actionsDiv.style.display = 'none';
+    const h2 = panelHeader.querySelector('h2');
+    if (h2) h2.style.display = 'none';
 
     panelBody.innerHTML = `
       <div class="form-page">
@@ -425,7 +433,10 @@ const fornecedoresUI = (() => {
 
   const backToList = async () => {
     const panelHeader = document.querySelector('.panel-header');
-    panelHeader.style.display = 'flex';
+    const actionsDiv = panelHeader.querySelector('.actions');
+    if (actionsDiv) actionsDiv.style.display = 'block';
+    const h2 = panelHeader.querySelector('h2');
+    if (h2) h2.style.display = 'block';
     await renderLista();
   };
 
