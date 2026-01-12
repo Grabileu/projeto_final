@@ -1,54 +1,96 @@
 // funcionarios.js
 const FuncionariosManager = (() => {
-  const STORAGE_KEY = 'funcionarios_data';
+  const getFuncionarios = async () => {
+    const { data, error } = await window.supabaseClient
+      .from('funcionarios')
+      .select('*')
+      .order('data_criacao', { ascending: false });
 
-  const getFuncionarios = () => {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+    if (error) {
+      console.error('Erro ao buscar funcionários:', error);
+      return [];
+    }
+
+    return data || [];
   };
 
-  const saveFuncionarios = (funcionarios) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(funcionarios));
-  };
-
-  const addFuncionario = (nome, cargo, dataAdmissao, cpf, salario) => {
-    const funcionarios = getFuncionarios();
-    const id = Date.now().toString();
+  const addFuncionario = async (nome, cargo, dataAdmissao, cpf, salario) => {
     const novoFuncionario = {
-      id,
+      id: Date.now().toString(),
       nome,
       cargo,
-      dataAdmissao,
+      data_admissao: dataAdmissao,
       cpf,
-      salario,
-      dataCriacao: new Date().toLocaleDateString('pt-BR')
+      salario: parseFloat(salario),
+      data_criacao: new Date().toISOString()
     };
-    funcionarios.push(novoFuncionario);
-    saveFuncionarios(funcionarios);
-    return novoFuncionario;
-  };
 
-  const updateFuncionario = (id, nome, cargo, dataAdmissao, cpf, salario) => {
-    const funcionarios = getFuncionarios();
-    const index = funcionarios.findIndex(f => f.id === id);
-    if (index !== -1) {
-      funcionarios[index] = { ...funcionarios[index], nome, cargo, dataAdmissao, cpf, salario };
-      saveFuncionarios(funcionarios);
-      return funcionarios[index];
+    const { data, error } = await window.supabaseClient
+      .from('funcionarios')
+      .insert([novoFuncionario])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Erro ao adicionar funcionário:', error);
+      alert('Erro ao salvar funcionário no banco de dados');
+      return null;
     }
-    return null;
+
+    return data;
   };
 
-  const deleteFuncionario = (id) => {
-    const funcionarios = getFuncionarios();
-    const filtrados = funcionarios.filter(f => f.id !== id);
-    saveFuncionarios(filtrados);
+  const updateFuncionario = async (id, nome, cargo, dataAdmissao, cpf, salario) => {
+    const { data, error } = await window.supabaseClient
+      .from('funcionarios')
+      .update({
+        nome,
+        cargo,
+        data_admissao: dataAdmissao,
+        cpf,
+        salario: parseFloat(salario)
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Erro ao atualizar funcionário:', error);
+      alert('Erro ao atualizar funcionário no banco de dados');
+      return null;
+    }
+
+    return data;
+  };
+
+  const deleteFuncionario = async (id) => {
+    const { error } = await window.supabaseClient
+      .from('funcionarios')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Erro ao excluir funcionário:', error);
+      alert('Erro ao excluir funcionário do banco de dados');
+      return false;
+    }
+
     return true;
   };
 
-  const getFuncionarioById = (id) => {
-    const funcionarios = getFuncionarios();
-    return funcionarios.find(f => f.id === id);
+  const getFuncionarioById = async (id) => {
+    const { data, error } = await window.supabaseClient
+      .from('funcionarios')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error('Erro ao buscar funcionário:', error);
+      return null;
+    }
+
+    return data;
   };
 
   return {
@@ -68,8 +110,8 @@ const FuncionariosUI = (() => {
     return numeros.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   };
 
-  const renderLista = () => {
-    const funcionarios = FuncionariosManager.getFuncionarios();
+  const renderLista = async () => {
+    const funcionarios = await FuncionariosManager.getFuncionarios();
     const panelBody = document.querySelector('.panel-body');
 
     if (funcionarios.length === 0) {

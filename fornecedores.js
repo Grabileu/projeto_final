@@ -1,53 +1,96 @@
 // fornecedores.js
 const FornecedoresManager = (() => {
-  const STORAGE_KEY = 'fornecedores_data';
+  const getFornecedores = async () => {
+    const { data, error } = await window.supabaseClient
+      .from('fornecedores')
+      .select('*')
+      .order('data_criacao', { ascending: false });
 
-  const getFornecedores = () => {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+    if (error) {
+      console.error('Erro ao buscar fornecedores:', error);
+      return [];
+    }
+
+    return data || [];
   };
 
-  const saveFornecedores = (fornecedores) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(fornecedores));
-  };
-
-  const addFornecedor = (nome, contato, email, endereco, produtos) => {
-    const fornecedores = getFornecedores();
-    const id = Date.now().toString();
+  const addFornecedor = async (nome, contato, email, endereco, produtos) => {
     const novoFornecedor = {
-      id,
+      id: Date.now().toString(),
       nome,
       contato,
       email,
       endereco,
-      produtos: produtos || []
+      telefone: contato,
+      data_criacao: new Date().toISOString()
     };
-    fornecedores.push(novoFornecedor);
-    saveFornecedores(fornecedores);
-    return novoFornecedor;
-  };
 
-  const updateFornecedor = (id, nome, contato, email, endereco, produtos) => {
-    const fornecedores = getFornecedores();
-    const index = fornecedores.findIndex(f => f.id === id);
-    if (index !== -1) {
-      fornecedores[index] = { ...fornecedores[index], nome, contato, email, endereco, produtos };
-      saveFornecedores(fornecedores);
-      return fornecedores[index];
+    const { data, error } = await window.supabaseClient
+      .from('fornecedores')
+      .insert([novoFornecedor])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Erro ao adicionar fornecedor:', error);
+      alert('Erro ao salvar fornecedor no banco de dados');
+      return null;
     }
-    return null;
+
+    return data;
   };
 
-  const deleteFornecedor = (id) => {
-    const fornecedores = getFornecedores();
-    const filtrados = fornecedores.filter(f => f.id !== id);
-    saveFornecedores(filtrados);
+  const updateFornecedor = async (id, nome, contato, email, endereco, produtos) => {
+    const { data, error } = await window.supabaseClient
+      .from('fornecedores')
+      .update({
+        nome,
+        contato,
+        email,
+        endereco,
+        telefone: contato
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Erro ao atualizar fornecedor:', error);
+      alert('Erro ao atualizar fornecedor no banco de dados');
+      return null;
+    }
+
+    return data;
+  };
+
+  const deleteFornecedor = async (id) => {
+    const { error } = await window.supabaseClient
+      .from('fornecedores')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Erro ao excluir fornecedor:', error);
+      alert('Erro ao excluir fornecedor do banco de dados');
+      return false;
+    }
+
     return true;
   };
 
-  const getFornecedorById = (id) => {
-    const fornecedores = getFornecedores();
-    return fornecedores.find(f => f.id === id);
+  const getFornecedorById = async (id) => {
+    const { data, error } = await window.supabaseClient
+      .from('fornecedores')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error('Erro ao buscar fornecedor:', error);
+      return null;
+    }
+
+    return data;
   };
 
   return {
@@ -64,8 +107,8 @@ const fornecedoresUI = (() => {
     return `R$ ${parseFloat(valor).toFixed(2).replace('.', ',')}`;
   };
 
-  const renderLista = () => {
-    const fornecedores = FornecedoresManager.getFornecedores();
+  const renderLista = async () => {
+    const fornecedores = await FornecedoresManager.getFornecedores();
     const panelBody = document.querySelector('.panel-body');
 
     if (fornecedores.length === 0) {

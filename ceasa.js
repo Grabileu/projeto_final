@@ -240,8 +240,8 @@ const ceasaUI = (() => {
   let diaSelected = null;
   let fornecedorSelected = null;
 
-  const renderDias = () => {
-    const compras = ceasaManager.getComprasPorMes(filtroAno, filtroMes);
+  const renderDias = async () => {
+    const compras = await ceasaManager.getComprasPorMes(filtroAno, filtroMes);
     const ceasaContent = document.getElementById('ceasaContent');
     
     if (compras.length === 0) {
@@ -402,7 +402,7 @@ const ceasaUI = (() => {
     attachEditarExcluirEvents();
   };
 
-  const renderLista = () => {
+  const renderLista = async () => {
     const panel = document.querySelector('.panel-body');
     if (!panel) return;
 
@@ -417,7 +417,7 @@ const ceasaUI = (() => {
     // Renderizar os dias no ceasaContent
     const ceasaContent = document.getElementById('ceasaContent');
     if (ceasaContent) {
-      renderDias();
+      await renderDias();
     }
 
     // Anexar os event listeners

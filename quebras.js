@@ -1,108 +1,159 @@
 // quebras.js
 const quebrasManager = (() => {
-  const STORAGE_KEY = 'quebras_data';
+  const getQuebras = async () => {
+    const { data, error } = await window.supabaseClient
+      .from('quebras_caixa')
+      .select('*')
+      .order('data', { ascending: false });
 
-  const getQuebras = () => {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+    if (error) {
+      console.error('Erro ao buscar quebras:', error);
+      return [];
+    }
+
+    return data || [];
   };
 
-  const saveQuebras = (quebras) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(quebras));
-  };
-
-  const addQuebra = (funcionarioId, funcionarioNome, tipo, valor, data, descricao, situacao = null, comprovante = null) => {
-    const quebras = getQuebras();
-    const id = Date.now().toString();
+  const addQuebra = async (funcionarioId, funcionarioNome, tipo, valor, data, descricao, situacao = null, comprovante = null) => {
     const novaQuebra = {
-      id,
-      funcionarioId,
-      funcionarioNome,
+      id: Date.now().toString(),
+      funcionario_id: funcionarioId,
+      funcionario_nome: funcionarioNome,
       tipo,
-      valor,
+      valor: parseFloat(valor),
       data,
       descricao,
       situacao,
       comprovante,
-      dataCriacao: new Date().toLocaleDateString('pt-BR')
+      data_criacao: new Date().toISOString()
     };
-    quebras.push(novaQuebra);
-    saveQuebras(quebras);
-    return novaQuebra;
+
+    const { data: inserted, error } = await window.supabaseClient
+      .from('quebras_caixa')
+      .insert([novaQuebra])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Erro ao adicionar quebra:', error);
+      alert('Erro ao salvar quebra no banco de dados');
+      return null;
+    }
+
+    return inserted;
   };
 
-  const updateQuebra = (id, funcionarioId, funcionarioNome, tipo, valor, data, descricao, situacao = null, comprovante = null) => {
-    const quebras = getQuebras();
-    const index = quebras.findIndex(q => q.id === id);
-    if (index !== -1) {
-      quebras[index] = {
-        ...quebras[index],
-        funcionarioId,
-        funcionarioNome,
+  const updateQuebra = async (id, funcionarioId, funcionarioNome, tipo, valor, data, descricao, situacao = null, comprovante = null) => {
+    const { data: updated, error } = await window.supabaseClient
+      .from('quebras_caixa')
+      .update({
+        funcionario_id: funcionarioId,
+        funcionario_nome: funcionarioNome,
         tipo,
-        valor,
+        valor: parseFloat(valor),
         data,
         descricao,
         situacao,
         comprovante
-      };
-      saveQuebras(quebras);
-      return quebras[index];
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Erro ao atualizar quebra:', error);
+      alert('Erro ao atualizar quebra no banco de dados');
+      return null;
     }
-    return null;
+
+    return updated;
   };
 
-  const deleteQuebra = (id) => {
-    const quebras = getQuebras();
-    const filtradas = quebras.filter(q => q.id !== id);
-    saveQuebras(filtradas);
+  const deleteQuebra = async (id) => {
+    const { error } = await window.supabaseClient
+      .from('quebras_caixa')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Erro ao excluir quebra:', error);
+      alert('Erro ao excluir quebra do banco de dados');
+      return false;
+    }
+
     return true;
   };
 
-  const getQuebraById = (id) => {
-    const quebras = getQuebras();
-    return quebras.find(q => q.id === id);
+  const getQuebraById = async (id) => {
+    const { data, error } = await window.supabaseClient
+      .from('quebras_caixa')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error('Erro ao buscar quebra:', error);
+      return null;
+    }
+
+    return data;
   };
 
-  const getQuebrasPorFuncionario = (funcionarioId) => {
-    const quebras = getQuebras();
-    return quebras.filter(q => q.funcionarioId === funcionarioId);
+  const getQuebrasPorFuncionario = async (funcionarioId) => {
+    const { data, error } = await window.supabaseClient
+      .from('quebras_caixa')
+      .select('*')
+      .eq('funcionario_id', funcionarioId);
+
+    if (error) {
+      console.error('Erro ao buscar quebras por funcionário:', error);
+      return [];
+    }
+
+    return data || [];
   };
 
-  const contarPorFuncionario = () => {
-    const quebras = getQuebras();
+  const contarPorFuncionario = async () => {
+    const quebras = await getQuebras();
     const contagem = {};
     quebras.forEach(q => {
-      if (!contagem[q.funcionarioNome]) {
-        contagem[q.funcionarioNome] = { total: 0, valor: 0 };
+      const nome = q.funcionario_nome || 'Desconhecido';
+      if (!contagem[nome]) {
+        contagem[nome] = { total: 0, valor: 0 };
       }
-      contagem[q.funcionarioNome].total++;
-      contagem[q.funcionarioNome].valor += parseFloat(q.valor);
+      contagem[nome].total++;
+      contagem[nome].valor += parseFloat(q.valor);
     });
     return contagem;
   };
 
-  const getQuebrasOrdenadas = () => {
-    const contagem = contarPorFuncionario();
+  const getQuebrasOrdenadas = async () => {
+    const contagem = await contarPorFuncionario();
     return Object.entries(contagem)
       .sort((a, b) => b[1].valor - a[1].valor)
       .map(([nome, dados]) => ({ nome, ...dados }));
   };
 
-  const getQuebrasPorMes = (ano, mes) => {
-    const quebras = getQuebras();
+  const getQuebrasPorMes = async (ano, mes) => {
+    const quebras = await getQuebras();
     return quebras.filter(q => {
       const [year, month] = q.data.split('-');
       return parseInt(year) === ano && parseInt(month) === mes;
     });
   };
 
-  const contarPorFuncionarioEMes = (ano, mes) => {
-    const quebrasFiltradas = getQuebrasPorMes(ano, mes);
+  const contarPorFuncionarioEMes = async (ano, mes) => {
+    const quebrasFiltradas = await getQuebrasPorMes(ano, mes);
     const contagem = {};
     quebrasFiltradas.forEach(q => {
-      if (!contagem[q.funcionarioNome]) {
-        contagem[q.funcionarioNome] = { total: 0, valor: 0 };
+      const nome = q.funcionario_nome || 'Desconhecido';
+      if (!contagem[nome]) {
+        contagem[nome] = { total: 0, valor: 0 };
+      }
+      contagem[nome].total++;
+      contagem[nome].valor += parseFloat(q.valor);
+    });
+    return contagem;
       }
       contagem[q.funcionarioNome].total++;
       contagem[q.funcionarioNome].valor += parseFloat(q.valor);
@@ -206,9 +257,9 @@ const quebrasUI = (() => {
     `;
   };
 
-  const renderLista = () => {
+  const renderLista = async () => {
     const panelBody = document.querySelector('.panel-body');
-    const quebrasOrdenadas = quebrasManager.getQuebrasPorMesOrdenadas(filtroAno, filtroMes);
+    const quebrasOrdenadas = await quebrasManager.getQuebrasPorMesOrdenadas(filtroAno, filtroMes);
 
     let html = `
       <div class="filtro-container">
