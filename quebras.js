@@ -511,6 +511,8 @@ const quebrasUI = (() => {
       </div>
     `;
 
+    console.log('📝 Formulário renderizado');
+
     let valoresAdicionais = [];
     const tipoSelect = document.getElementById('tipo');
     const situacaoRow = document.getElementById('situacaoRow');
@@ -519,6 +521,18 @@ const quebrasUI = (() => {
     const listaValoresAdicionais = document.getElementById('listaValoresAdicionais');
     const btnAdicionarValor = document.getElementById('btnAdicionarValor');
     const formQuebra = document.getElementById('formQuebra');
+
+    if (!formQuebra) {
+      console.error('❌ formQuebra não encontrado!');
+      return;
+    }
+
+    if (!tipoSelect || !situacaoRow || !comprovanteRow) {
+      console.error('❌ Elementos do formulário não encontrados!');
+      return;
+    }
+
+    console.log('✅ Todos os elementos encontrados');
 
     const tiposComMultiplasPerdas = ['debito', 'credito', 'alimentacao', 'pos', 'cliente-prazo', 'pix'];
     const tiposComComprovante = ['pos', 'pix', 'credito', 'debito'];
@@ -564,12 +578,16 @@ const quebrasUI = (() => {
 
     formQuebra.addEventListener('submit', async (e) => {
       e.preventDefault();
+      console.log('📤 Formulário submetido');
+      
       const funcionarioValue = document.getElementById('funcionario').value;
       const tipo = document.getElementById('tipo').value;
       const valor = document.getElementById('valor').value;
       const data = document.getElementById('data').value;
       const descricao = document.getElementById('descricao').value.trim();
       const situacao = tipo === 'dinheiro' ? document.getElementById('situacao').value : null;
+
+      console.log('📋 Dados do formulário:', { funcionarioValue, tipo, valor, data, situacao });
 
       if (!funcionarioValue || !tipo || !valor || !data) {
         alert('Todos os campos obrigatórios devem ser preenchidos!');
@@ -600,14 +618,17 @@ const quebrasUI = (() => {
 
       const [funcionarioId, funcionarioNome] = funcionarioValue.split('|');
       
+      console.log('💾 Salvando quebra principal...');
       // Adicionar o vale principal
       await quebrasManager.addQuebra(funcionarioId, funcionarioNome, tipo, valor, data, descricao, situacao, comprovante);
       
+      console.log('💾 Salvando valores adicionais:', valoresAdicionais.length);
       // Adicionar valores adicionais como vales separados
       for (const valorAdicional of valoresAdicionais) {
         await quebrasManager.addQuebra(funcionarioId, funcionarioNome, tipo, valorAdicional, data, 'Perda adicional na mesma finalizadora', null, comprovante);
       }
 
+      console.log('✅ Quebra salva com sucesso! Voltando à lista...');
       await backToList();
     });
 
