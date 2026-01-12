@@ -253,33 +253,38 @@ const quebrasUI = (() => {
   };
 
   const renderLista = async () => {
-    const panelBody = document.querySelector('.panel-body');
-    if (!panelBody) {
-      console.error('panel-body não encontrado');
-      return;
-    }
+    try {
+      const panelBody = document.querySelector('.panel-body');
+      if (!panelBody) {
+        console.error('panel-body não encontrado');
+        return;
+      }
 
-    const quebrasOrdenadas = await quebrasManager.getQuebrasPorMesOrdenadas(filtroAno, filtroMes);
-    const todasQuebras = await quebrasManager.getQuebrasPorMes(filtroAno, filtroMes);
+      console.log('📋 Carregando quebras...');
+      const quebrasOrdenadas = await quebrasManager.getQuebrasPorMesOrdenadas(filtroAno, filtroMes);
+      console.log('✅ Quebras ordenadas carregadas:', quebrasOrdenadas.length);
+      
+      const todasQuebras = await quebrasManager.getQuebrasPorMes(filtroAno, filtroMes);
+      console.log('✅ Todas as quebras carregadas:', todasQuebras.length);
 
-    let html = `
-      <div class="filtro-container">
-        ${renderFiltro()}
-      </div>
-    `;
+      let html = `
+        <div class="filtro-container">
+          ${renderFiltro()}
+        </div>
+      `;
 
-    if (quebrasOrdenadas.length === 0) {
-      html += '<p class="empty">Nenhuma quebra de caixa registrada para este período. Clique em "Adicionar vale" para registrar.</p>';
-      panelBody.innerHTML = html;
-      attachFiltroEvents();
-      return;
-    }
+      if (quebrasOrdenadas.length === 0) {
+        html += '<p class="empty">Nenhuma quebra de caixa registrada para este período. Clique em "Adicionar vale" para registrar.</p>';
+        panelBody.innerHTML = html;
+        attachFiltroEvents();
+        return;
+      }
 
-    html += '<div class="quebras-list"><ul>';
-    
-    quebrasOrdenadas.forEach(item => {
-      const registros = todasQuebras.filter(q => q.funcionario_nome === item.nome);
-      html += `
+      html += '<div class="quebras-list"><ul>';
+      
+      quebrasOrdenadas.forEach(item => {
+        const registros = todasQuebras.filter(q => q.funcionario_nome === item.nome);
+        html += `
         <li class="quebra-item">
           <div class="quebra-info">
             <span class="quebra-nome">${item.nome}</span>
@@ -321,6 +326,10 @@ const quebrasUI = (() => {
     attachFiltroEvents();
     attachExpandirEvents();
     attachEditarExcluirEvents();
+    } catch (erro) {
+      console.error('❌ Erro ao renderizar lista:', erro);
+      alert('Erro ao carregar quebras: ' + erro.message);
+    }
   };
 
   const attachExpandirEvents = () => {
