@@ -1,0 +1,62 @@
+{
+  "name": "guf-sistemas",
+  "version": "2.0.0",
+  "description": "Sistema profissional de gestão de funcionários, quebras de caixa e relatórios",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "build": "echo 'Build concluído'",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "audit": "npm audit",
+    "audit:fix": "npm audit fix",
+    "precommit": "npm run lint && npm run test",
+    "deploy:vercel": "vercel deploy --prod",
+    "deploy:netlify": "netlify deploy --prod"
+  },
+  "keywords": [
+    "gestão",
+    "funcionários",
+    "supabase",
+    "sistema",
+    "admin"
+  ],
+  "author": "Seu Nome",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "@supabase/supabase-js": "^2.26.0",
+    "dotenv": "^16.3.1",
+    "express-rate-limit": "^7.1.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "jest": "^29.7.0",
+    "eslint": "^8.54.0",
+    "prettier": "^3.1.0",
+    "@testing-library/jest-dom": "^6.1.5"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/seu-usuario/guf-sistemas.git"
+  },
+  "bugs": {
+    "url": "https://github.com/seu-usuario/guf-sistemas/issues"
+  },
+  "homepage": "https://github.com/seu-usuario/guf-sistemas#readme",
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

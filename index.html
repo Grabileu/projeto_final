@@ -3,8 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>GUF Sistemas — Projeto</title>
+  <meta name="description" content="GUF Sistemas - Gerenciamento Profissional de Funcionários e Quebras de Caixa">
+  <meta name="theme-color" content="#3b82f6">
+  <title>GUF Sistemas — Gestão Profissional v2.0</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="professional-styles.css" />
 </head>
 <body>
   <div class="app">
@@ -192,14 +195,29 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabaseClient.js"></script>
 
+  <!-- Core Systems -->
+  <script src="core-manager.js"></script>
+  <script src="ui-manager.js"></script>
+
+  <!-- Professional Features -->
+  <script src="auth-manager.js"></script>
+  <script src="export-manager.js"></script>
+  <script src="notifications-manager.js"></script>
+  <script src="analytics-manager.js"></script>
+  <script src="cache-manager.js"></script>
+
+  <!-- Módulos de Dados -->
   <script src="dataSync.js"></script>
-    <script src="funcionarios.js"></script>
+  <script src="funcionarios.js"></script>
   <script src="faltas.js"></script>
   <script src="quebras.js"></script>
   <script src="ceasa.js"></script>
   <script src="fornecedores.js"></script>
   <script src="relatorios.js"></script>
   <script src="dashboard.js"></script>
+
+  <!-- Exemplos e Integração -->
+  <script src="EXEMPLOS_INTEGRACAO.js"></script>
   <script>
     (async function () {
       const toggle = document.querySelector('.menu-toggle');
