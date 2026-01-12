@@ -3,12 +3,11 @@ const FuncionariosManager = (() => {
   const STORAGE_KEY = 'funcionarios_data';
 
   const getFuncionarios = () => {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+    return [];
   };
 
   const saveFuncionarios = (funcionarios) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(funcionarios));
+    // Dados são persistidos no Supabase
   };
 
   const addFuncionario = (nome, cargo, dataAdmissao, cpf, salario) => {

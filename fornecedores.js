@@ -1,53 +1,87 @@
 // fornecedores.js
 const FornecedoresManager = (() => {
-  const STORAGE_KEY = 'fornecedores_data';
 
-  const getFornecedores = () => {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+  const getFornecedores = async () => {
+    const { data, error } = await supabaseClient
+      .from('fornecedores')
+      .select('*')
+      .order('nome');
+
+    if (error) {
+      console.error('Erro ao buscar fornecedores', error);
+      return [];
+    }
+    return data || [];
   };
 
-  const saveFornecedores = (fornecedores) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(fornecedores));
-  };
-
-  const addFornecedor = (nome, contato, email, endereco, produtos) => {
-    const fornecedores = getFornecedores();
-    const id = Date.now().toString();
+  const addFornecedor = async (nome, contato, email, endereco, produtos) => {
     const novoFornecedor = {
-      id,
       nome,
       contato,
       email,
       endereco,
       produtos: produtos || []
     };
-    fornecedores.push(novoFornecedor);
-    saveFornecedores(fornecedores);
+
+    const { error } = await supabaseClient
+      .from('fornecedores')
+      .insert([novoFornecedor]);
+
+    if (error) {
+      alert('Erro ao salvar fornecedor');
+      console.error(error);
+      return null;
+    }
+
     return novoFornecedor;
   };
 
-  const updateFornecedor = (id, nome, contato, email, endereco, produtos) => {
-    const fornecedores = getFornecedores();
-    const index = fornecedores.findIndex(f => f.id === id);
-    if (index !== -1) {
-      fornecedores[index] = { ...fornecedores[index], nome, contato, email, endereco, produtos };
-      saveFornecedores(fornecedores);
-      return fornecedores[index];
-    }
-    return null;
-  };
+  const updateFornecedor = async (id, nome, contato, email, endereco, produtos) => {
+    const { error } = await supabaseClient
+      .from('fornecedores')
+      .update({
+        nome,
+        contato,
+        email,
+        endereco,
+        produtos
+      })
+      .eq('id', id);
 
-  const deleteFornecedor = (id) => {
-    const fornecedores = getFornecedores();
-    const filtrados = fornecedores.filter(f => f.id !== id);
-    saveFornecedores(filtrados);
+    if (error) {
+      alert('Erro ao atualizar fornecedor');
+      console.error(error);
+      return null;
+    }
+
     return true;
   };
 
-  const getFornecedorById = (id) => {
-    const fornecedores = getFornecedores();
-    return fornecedores.find(f => f.id === id);
+  const deleteFornecedor = async (id) => {
+    const { error } = await supabaseClient
+      .from('fornecedores')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      alert('Erro ao excluir fornecedor');
+      console.error(error);
+    }
+    return true;
+  };
+
+  const getFornecedorById = async (id) => {
+    const { data, error } = await supabaseClient
+      .from('fornecedores')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error('Erro ao buscar fornecedor', error);
+      return null;
+    }
+    return data;
   };
 
   return {
@@ -64,8 +98,8 @@ const fornecedoresUI = (() => {
     return `R$ ${parseFloat(valor).toFixed(2).replace('.', ',')}`;
   };
 
-  const renderLista = () => {
-    const fornecedores = FornecedoresManager.getFornecedores();
+  const renderLista = async () => {
+    const fornecedores = await FornecedoresManager.getFornecedores();
     const panelBody = document.querySelector('.panel-body');
 
     if (fornecedores.length === 0) {
@@ -102,8 +136,8 @@ const fornecedoresUI = (() => {
     });
   };
 
-  const mostrarDetalhes = (id) => {
-    const fornecedor = FornecedoresManager.getFornecedorById(id);
+  const mostrarDetalhes = async (id) => {
+    const fornecedor = await FornecedoresManager.getFornecedorById(id);
     if (!fornecedor) return;
 
     const panelBody = document.querySelector('.panel-body');
@@ -145,10 +179,10 @@ const fornecedoresUI = (() => {
       showEditFornecedorPage(id);
     });
 
-    document.querySelector('.btn-delete-fornecedor').addEventListener('click', (e) => {
+    document.querySelector('.btn-delete-fornecedor').addEventListener('click', async (e) => {
       e.stopPropagation();
       if (confirm('Tem certeza que deseja excluir este fornecedor?')) {
-        FornecedoresManager.deleteFornecedor(id);
+        await FornecedoresManager.deleteFornecedor(id);
         renderLista();
       }
     });
@@ -242,7 +276,7 @@ const fornecedoresUI = (() => {
 
     renderProdutos();
 
-    document.getElementById('formFornecedor').addEventListener('submit', (e) => {
+    document.getElementById('formFornecedor').addEventListener('submit', async (e) => {
       e.preventDefault();
       const nome = document.getElementById('nome').value.trim();
       const contato = document.getElementById('contato').value.trim();
@@ -257,15 +291,15 @@ const fornecedoresUI = (() => {
         return;
       }
 
-      FornecedoresManager.addFornecedor(nome, contato, email, endereco, produtosValidos);
+      await FornecedoresManager.addFornecedor(nome, contato, email, endereco, produtosValidos);
       backToList();
     });
 
     document.getElementById('btnCancel').addEventListener('click', backToList);
   };
 
-  const showEditFornecedorPage = (id) => {
-    const fornecedor = FornecedoresManager.getFornecedorById(id);
+  const showEditFornecedorPage = async (id) => {
+    const fornecedor = await FornecedoresManager.getFornecedorById(id);
     if (!fornecedor) return;
 
     const panelBody = document.querySelector('.panel-body');
@@ -354,7 +388,7 @@ const fornecedoresUI = (() => {
 
     renderProdutos();
 
-    document.getElementById('formFornecedor').addEventListener('submit', (e) => {
+    document.getElementById('formFornecedor').addEventListener('submit', async (e) => {
       e.preventDefault();
       const nome = document.getElementById('nome').value.trim();
       const contato = document.getElementById('contato').value.trim();
@@ -368,7 +402,7 @@ const fornecedoresUI = (() => {
         return;
       }
 
-      FornecedoresManager.updateFornecedor(id, nome, contato, email, endereco, produtosValidos);
+      await FornecedoresManager.updateFornecedor(id, nome, contato, email, endereco, produtosValidos);
       backToList();
     });
 

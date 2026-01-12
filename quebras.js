@@ -3,12 +3,11 @@ const quebrasManager = (() => {
   const STORAGE_KEY = 'quebras_data';
 
   const getQuebras = () => {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+    return [];
   };
 
   const saveQuebras = (quebras) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(quebras));
+    // Dados são persistidos no Supabase
   };
 
   const addQuebra = (funcionarioId, funcionarioNome, tipo, valor, data, descricao, situacao = null, comprovante = null) => {

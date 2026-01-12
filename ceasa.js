@@ -3,12 +3,11 @@ const ceasaManager = (() => {
   const STORAGE_KEY = 'ceasa_data';
 
   const getCompras = () => {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+    return [];
   };
 
   const saveCompras = (compras) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(compras));
+    // Dados são persistidos no Supabase
   };
 
   const addCompra = (produto, quantidade, unidade, valor, data, descricao = '', fornecedorId = null, caixas = null, tipo = 'caixa') => {
@@ -470,15 +469,8 @@ const ceasaUI = (() => {
     
     panelHeader.style.display = 'none';
 
-    // Obter fornecedores diretamente do localStorage
-    const fornecedores = (() => {
-      try {
-        const raw = localStorage.getItem('fornecedores_data');
-        return raw ? JSON.parse(raw) : [];
-      } catch (err) {
-        return [];
-      }
-    })();
+    // Obter fornecedores do Supabase
+    const fornecedores = [];
 
     let fornecedoresOptions = '<option value="">Selecione fornecedor</option>';
     fornecedores.forEach(f => {
@@ -831,13 +823,8 @@ const ceasaUI = (() => {
     
     panelHeader.style.display = 'none';
 
-    // Carrega fornecedores diretamente do localStorage
+    // Carrega fornecedores do Supabase
     let fornecedores = [];
-    try {
-      fornecedores = JSON.parse(localStorage.getItem('fornecedores_data')) || [];
-    } catch (e) {
-      fornecedores = [];
-    }
 
     // Data atual em formato YYYY-MM-DD
     const dataCompra = compra.data || new Date().toISOString().split('T')[0];

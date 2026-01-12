@@ -1,23 +1,17 @@
 // faltas.js
 const FaltasManager = (() => {
-  const STORAGE_KEY = 'faltas_data';
 
   const getFaltas = async () => {
-    const { data, error } = await window.supabaseClient
+    const { data, error } = await supabaseClient
       .from('faltas')
       .select('*')
       .order('data', { ascending: false });
 
     if (error) {
-      console.error('Erro ao buscar faltas:', error);
+      console.error('Erro ao buscar faltas', error);
       return [];
     }
-
     return data || [];
-  };
-
-  const saveFaltas = (faltas) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(faltas));
   };
 
   const addFalta = async (funcionarioId, funcionarioNome, tipo, data, justificada, justificativa) => {
@@ -31,23 +25,21 @@ const FaltasManager = (() => {
       dataCriacao: new Date().toISOString()
     };
 
-    const { data: inserted, error } = await window.supabaseClient
+    const { error } = await supabaseClient
       .from('faltas')
-      .insert([novaFalta])
-      .select()
-      .single();
+      .insert([novaFalta]);
 
     if (error) {
-      console.error('Erro ao adicionar falta:', error);
-      alert('Erro ao salvar falta no banco de dados');
+      alert('Erro ao salvar falta');
+      console.error(error);
       return null;
     }
 
-    return inserted;
+    return novaFalta;
   };
 
   const updateFalta = async (id, funcionarioId, funcionarioNome, tipo, data, justificada, justificativa) => {
-    const { data: updated, error } = await window.supabaseClient
+    const { error } = await supabaseClient
       .from('faltas')
       .update({
         funcionarioId,
@@ -57,51 +49,42 @@ const FaltasManager = (() => {
         justificada: justificada || false,
         justificativa: justificativa || ''
       })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Erro ao atualizar falta:', error);
-      alert('Erro ao atualizar falta no banco de dados');
-      return null;
-    }
-
-    return updated;
-  };
-
-  const deleteFalta = async (id) => {
-    const { error } = await window.supabaseClient
-      .from('faltas')
-      .delete()
       .eq('id', id);
 
     if (error) {
-      console.error('Erro ao excluir falta:', error);
-      alert('Erro ao excluir falta do banco de dados');
-      return false;
+      alert('Erro ao atualizar falta');
+      console.error(error);
+      return null;
     }
 
     return true;
   };
 
+  const deleteFalta = async (id) => {
+    const { error } = await supabaseClient
+      .from('faltas')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      alert('Erro ao excluir');
+      console.error(error);
+    }
+    return true;
+  };
+
   const getFaltaById = async (id) => {
-    const { data, error } = await window.supabaseClient
+    const { data } = await supabaseClient
       .from('faltas')
       .select('*')
       .eq('id', id)
       .single();
 
-    if (error) {
-      console.error('Erro ao buscar falta:', error);
-      return null;
-    }
-
     return data;
   };
 
   const getFaltasPorFuncionario = async (funcionarioId) => {
-    const { data, error } = await window.supabaseClient
+    const { data, error } = await supabaseClient
       .from('faltas')
       .select('*')
       .eq('funcionarioId', funcionarioId);
@@ -119,7 +102,7 @@ const FaltasManager = (() => {
     const inicioMes = `${ano}-${mesFormatado}-01`;
     const fimMes = `${ano}-${mesFormatado}-31`;
 
-    const { data, error } = await window.supabaseClient
+    const { data, error } = await supabaseClient
       .from('faltas')
       .select('*')
       .gte('data', inicioMes)

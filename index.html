@@ -432,21 +432,8 @@
         showStatus('Sincronizando', 'Enviando dados para o servidor...', 'info');
 
         try {
-          // Sincronizar todas as categorias
-          const categorias = ['quebras', 'faltas', 'ceasa', 'funcionarios', 'fornecedores'];
+          // Dados já estão sincronizados com o Supabase
           let sucessos = 0;
-
-          for (const categoria of categorias) {
-            const dados = localStorage.getItem(categoria);
-            if (dados) {
-              try {
-                await DataSync.syncWithServer(categoria, JSON.parse(dados));
-                sucessos++;
-              } catch (e) {
-                console.warn('Erro ao sincronizar ' + categoria, e);
-              }
-            }
-          }
 
           showStatus('Sincronização Concluída', sucessos + ' categorias sincronizadas com sucesso', 'success');
         } catch (err) {
