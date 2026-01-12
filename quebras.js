@@ -154,15 +154,10 @@ const quebrasManager = (() => {
       contagem[nome].valor += parseFloat(q.valor);
     });
     return contagem;
-      }
-      contagem[q.funcionarioNome].total++;
-      contagem[q.funcionarioNome].valor += parseFloat(q.valor);
-    });
-    return contagem;
   };
 
-  const getQuebrasPorMesOrdenadas = (ano, mes) => {
-    const contagem = contarPorFuncionarioEMes(ano, mes);
+  const getQuebrasPorMesOrdenadas = async (ano, mes) => {
+    const contagem = await contarPorFuncionarioEMes(ano, mes);
     return Object.entries(contagem)
       .sort((a, b) => b[1].valor - a[1].valor)
       .map(([nome, dados]) => ({ nome, ...dados }));
