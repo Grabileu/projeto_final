@@ -262,14 +262,14 @@
 
       const btnAction = document.getElementById('btnAction');
       if (btnAction) {
-        btnAction.addEventListener('click', () => {
+        btnAction.addEventListener('click', async () => {
           try {
             if (currentSection === 'funcionario') {
               FuncionariosUI.showCreatePage();
             } else if (currentSection === 'faltas') {
-              FaltasUI.showAddFaltaPage();
+              await FaltasUI.showAddFaltaPage();
             } else if (currentSection === 'quebras') {
-              quebrasUI.showAddQuebraPage();
+              await quebrasUI.showAddQuebraPage();
             } else if (currentSection === 'ceasa-compras') {
               ceasaUI.showAddCompraPage();
             } else if (currentSection === 'ceasa-fornecedores') {
@@ -374,14 +374,14 @@
               actions.innerHTML = '';
               actions.appendChild(newBtn);
               // Reattach event listener
-              newBtn.addEventListener('click', () => {
+              newBtn.addEventListener('click', async () => {
                 try {
                   if (currentSection === 'funcionario') {
                     FuncionariosUI.showCreatePage();
                   } else if (currentSection === 'faltas') {
-                    FaltasUI.showAddFaltaPage();
+                    await FaltasUI.showAddFaltaPage();
                   } else if (currentSection === 'quebras') {
-                    quebrasUI.showAddQuebraPage();
+                    await quebrasUI.showAddQuebraPage();
                   } else if (currentSection === 'ceasa-compras') {
                     ceasaUI.showAddCompraPage();
                   } else if (currentSection === 'ceasa-fornecedores') {

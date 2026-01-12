@@ -337,7 +337,7 @@ const FaltasUI = (() => {
     });
   };
 
-  const showAddFaltaPage = () => {
+  const showAddFaltaPage = async () => {
     const panelBody = document.querySelector('.panel-body');
     const panelHeader = document.querySelector('.panel-header');
     
@@ -346,7 +346,7 @@ const FaltasUI = (() => {
     const h2 = panelHeader.querySelector('h2');
     if (h2) h2.style.display = 'none';
 
-    const funcionarios = FuncionariosManager.getFuncionarios();
+    const funcionarios = await FuncionariosManager.getFuncionarios();
     let optionsFuncionarios = '<option value="">Selecione um funcionário</option>';
     
     funcionarios.forEach(f => {
@@ -445,7 +445,7 @@ const FaltasUI = (() => {
     const h2 = panelHeader.querySelector('h2');
     if (h2) h2.style.display = 'none';
 
-    const funcionarios = FuncionariosManager.getFuncionarios();
+    const funcionarios = await FuncionariosManager.getFuncionarios();
     let optionsFuncionarios = '<option value="">Selecione um funcionário</option>';
     
     funcionarios.forEach(f => {
