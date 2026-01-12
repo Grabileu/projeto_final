@@ -192,9 +192,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabaseClient.js"></script>
 
-  <!-- Supabase Ceasa Module -->
-  <script type="module" src="supasabe-ceasa.js"></script>
-
   <script src="dataSync.js"></script>
     <script src="funcionarios.js"></script>
   <script src="faltas.js"></script>
@@ -299,58 +296,66 @@
 
       const atualizarSecao = async (secao) => {
         const btn = document.getElementById('btnAction');
+        const actionsDiv = document.querySelector('.panel-header .actions');
+        
         if (!btn) return;
         
         try {
+          // Mostrar o actions div se ele estava escondido
+          if (actionsDiv) {
+            actionsDiv.style.display = 'block';
+          }
+          
+          // Mostrar o h2 se estava escondido
+          const h2 = document.querySelector('.panel-header h2');
+          if (h2) {
+            h2.style.display = 'block';
+          }
+          
           if (secao === 'dashboard') {
             btn.style.display = 'none';
+            if (actionsDiv) actionsDiv.style.display = 'none';
             await dashboardUI.renderDashboard();
           } else if (secao === 'funcionario') {
+            btn.textContent = 'Criar funcionário';
+            btn.style.display = 'block';
+            if (actionsDiv) actionsDiv.style.display = 'block';
             await FuncionariosUI.renderLista();
-            const btnRefresh = document.getElementById('btnAction');
-            if (btnRefresh) {
-              btnRefresh.textContent = 'Criar funcionário';
-              btnRefresh.style.display = 'block';
-            }
           } else if (secao === 'faltas') {
+            btn.textContent = 'Adicionar falta';
+            btn.style.display = 'block';
+            if (actionsDiv) actionsDiv.style.display = 'block';
             await FaltasUI.renderLista();
-            const btnRefresh = document.getElementById('btnAction');
-            if (btnRefresh) {
-              btnRefresh.textContent = 'Adicionar falta';
-              btnRefresh.style.display = 'block';
-            }
           } else if (secao === 'quebras') {
+            btn.textContent = 'Adicionar vale';
+            btn.style.display = 'block';
+            if (actionsDiv) actionsDiv.style.display = 'block';
             await quebrasUI.renderLista();
-            const btnRefresh = document.getElementById('btnAction');
-            if (btnRefresh) {
-              btnRefresh.textContent = 'Adicionar vale';
-              btnRefresh.style.display = 'block';
-            }
           } else if (secao === 'ceasa-compras') {
+            btn.textContent = 'Adicionar compra';
+            btn.style.display = 'block';
+            if (actionsDiv) actionsDiv.style.display = 'block';
             await ceasaUI.renderLista();
-            const btnRefresh = document.getElementById('btnAction');
-            if (btnRefresh) {
-              btnRefresh.textContent = 'Adicionar compra';
-              btnRefresh.style.display = 'block';
-            }
           } else if (secao === 'ceasa-fornecedores') {
+            btn.textContent = 'Adicionar fornecedor';
+            btn.style.display = 'block';
+            if (actionsDiv) actionsDiv.style.display = 'block';
             await fornecedoresUI.renderLista();
-            const btnRefresh = document.getElementById('btnAction');
-            if (btnRefresh) {
-              btnRefresh.textContent = 'Adicionar fornecedor';
-              btnRefresh.style.display = 'block';
-            }
           } else if (secao === 'relatorios-quebras') {
             btn.style.display = 'none';
+            if (actionsDiv) actionsDiv.style.display = 'none';
             await relatóriosUI.renderRelatórioQuebras();
           } else if (secao === 'relatorios-faltas-atestados') {
             btn.style.display = 'none';
+            if (actionsDiv) actionsDiv.style.display = 'none';
             await relatóriosUI.renderRelatórioFaltasAtestados();
           } else if (secao === 'relatorios-ceasa') {
             btn.style.display = 'none';
+            if (actionsDiv) actionsDiv.style.display = 'none';
             await relatóriosUI.renderRelatórioCeasa();
           } else if (secao === 'relatorios-funcionarios') {
             btn.style.display = 'none';
+            if (actionsDiv) actionsDiv.style.display = 'none';
             await relatóriosUI.renderRelatórioFuncionários();
           }
         } catch (err) {
@@ -358,6 +363,10 @@
           const btnRefresh = document.getElementById('btnAction');
           if (btnRefresh) {
             btnRefresh.style.display = 'block';
+          }
+          const actions = document.querySelector('.panel-header .actions');
+          if (actions) {
+            actions.style.display = 'block';
           }
         }
       };
