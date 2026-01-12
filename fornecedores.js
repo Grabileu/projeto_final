@@ -1,30 +1,37 @@
 // fornecedores.js
 const FornecedoresManager = (() => {
   const getFornecedores = async () => {
+    console.log('🔎 Buscando fornecedores do Supabase...');
     const { data, error } = await window.supabaseClient
       .from('fornecedores')
-      .select('*')
-      .order('data_criacao', { ascending: false });
+      .select('*');
 
     if (error) {
-      console.error('Erro ao buscar fornecedores:', error);
+      console.error('❌ Erro ao buscar fornecedores:', error);
+      console.error('Detalhes do erro:', error.message, error.details);
       return [];
     }
 
-    return data || [];
+    console.log('✅ Dados retornados do Supabase:', data);
+    
+    // Ordena por ID descendente (mais recentes primeiro)
+    const sorted = (data || []).sort((a, b) => {
+      if (b.id && a.id) return b.id - a.id;
+      return 0;
+    });
+    
+    return sorted;
   };
 
   const addFornecedor = async (nome, contato, email, endereco, produtos) => {
-    // Gerar um UUID único para o novo fornecedor
-    const id = 'fornecedor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    
     const novoFornecedor = {
-      id,
       nome,
       contato,
       email,
       endereco
     };
+
+    console.log('📝 Tentando salvar fornecedor:', novoFornecedor);
 
     const { data, error } = await window.supabaseClient
       .from('fornecedores')
@@ -33,12 +40,13 @@ const FornecedoresManager = (() => {
       .single();
 
     if (error) {
-      console.error('Erro ao adicionar fornecedor:', error);
+      console.error('❌ Erro ao adicionar fornecedor:', error);
       console.error('Detalhes do erro:', error.message, error.details, error.hint);
       alert('Erro ao salvar fornecedor: ' + error.message);
       return null;
     }
 
+    console.log('✅ Fornecedor salvo com sucesso:', data);
     return data;
   };
 
@@ -115,7 +123,9 @@ const fornecedoresUI = (() => {
       return;
     }
 
+    console.log('🔄 Carregando lista de fornecedores...');
     const fornecedores = await FornecedoresManager.getFornecedores();
+    console.log('📦 Fornecedores carregados:', fornecedores.length, fornecedores);
 
     if (fornecedores.length === 0) {
       panelBody.innerHTML = '<p class="empty">Nenhum fornecedor cadastrado. Clique em "Adicionar fornecedor" para incluir.</p>';
@@ -319,8 +329,10 @@ const fornecedoresUI = (() => {
         return;
       }
 
-      await FornecedoresManager.addFornecedor(nome, contato, email, endereco, produtosValidos);
-      await backToList();
+      const resultado = await FornecedoresManager.addFornecedor(nome, contato, email, endereco, produtosValidos);
+      if (resultado) {
+        await backToList();
+      }
     });
 
     document.getElementById('btnCancel').addEventListener('click', async () => await backToList());
@@ -452,3 +464,14 @@ const fornecedoresUI = (() => {
 // Exportar para acesso global
 window.FornecedoresManager = FornecedoresManager;
 window.fornecedoresUI = fornecedoresUI;
+
+// Função de teste para debugar
+window.testarFornecedores = async () => {
+  console.log('🧪 Iniciando teste de fornecedores...');
+  const dados = await FornecedoresManager.getFornecedores();
+  console.log('✅ Dados obtidos:', dados);
+  console.log('📊 Total de fornecedores:', dados.length);
+  return dados;
+};
+
+console.log('✨ Módulo fornecedores.js carregado. Use window.testarFornecedores() para testar.');

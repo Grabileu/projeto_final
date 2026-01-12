@@ -15,11 +15,7 @@ const FuncionariosManager = (() => {
   };
 
   const addFuncionario = async (nome, cargo, dataAdmissao, cpf, salario, loja) => {
-    // Gerar um ID único
-    const id = 'func_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    
     const novoFuncionario = {
-      id,
       nome,
       cargo,
       data_admissao: dataAdmissao,

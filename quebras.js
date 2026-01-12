@@ -15,11 +15,7 @@ const quebrasManager = (() => {
   };
 
   const addQuebra = async (funcionarioId, funcionarioNome, tipo, valor, data, descricao, situacao = null, comprovante = null) => {
-    // Gerar um ID único
-    const id = 'quebra_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    
     const novaQuebra = {
-      id,
       funcionario_id: funcionarioId,
       funcionario_nome: funcionarioNome,
       tipo,
