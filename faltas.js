@@ -158,6 +158,7 @@ const FaltasManager = (() => {
 const FaltasUI = (() => {
   let filtroAno = new Date().getFullYear();
   let filtroMes = new Date().getMonth() + 1;
+  let filtroLoja = '';
 
   const formatarData = (dataISO) => {
     const [year, month, day] = dataISO.split('-');
@@ -169,7 +170,24 @@ const FaltasUI = (() => {
       console.error('panel-body não encontrado');
       return;
     }
-    const faltasOrdenadas = await FaltasManager.getFaltasOrdenadas(filtroAno, filtroMes);
+    let faltasOrdenadas = await FaltasManager.getFaltasOrdenadas(filtroAno, filtroMes);
+
+    // Filtrar por loja se selecionado
+    if (filtroLoja) {
+      const funcionarios = await window.supabaseClient
+        .from('funcionarios')
+        .select('nome, loja');
+      
+      if (funcionarios.data) {
+        const funcionariosLoja = funcionarios.data
+          .filter(f => f.loja === filtroLoja)
+          .map(f => f.nome);
+        
+        faltasOrdenadas = faltasOrdenadas.filter(item => 
+          funcionariosLoja.includes(item.nome)
+        );
+      }
+    }
 
     if (faltasOrdenadas.length === 0) {
       panelBody.innerHTML = `
@@ -268,6 +286,11 @@ const FaltasUI = (() => {
           <select id="filtroAno" class="filtro-select">
             ${anosOptions}
           </select>
+          <select id="filtroLoja" class="filtro-select">
+            <option value="">Todas as lojas</option>
+            <option value="AREA VERDE">AREA VERDE</option>
+            <option value="SUPER MACHADO">SUPER MACHADO</option>
+          </select>
           <button id="btnAplicarFiltro" class="btn btn-filtro">Aplicar</button>
         </div>
       </div>
@@ -280,6 +303,7 @@ const FaltasUI = (() => {
       btnAplicar.addEventListener('click', async () => {
         filtroMes = parseInt(document.getElementById('filtroMes').value);
         filtroAno = parseInt(document.getElementById('filtroAno').value);
+        filtroLoja = document.getElementById('filtroLoja').value;
         await renderLista();
       });
     }

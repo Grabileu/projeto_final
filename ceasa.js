@@ -14,7 +14,7 @@ const ceasaManager = (() => {
     return data || [];
   };
 
-  const addCompra = async (produto, quantidade, unidade, valor, data, descricao = '', fornecedorId = null, caixas = null, tipo = 'caixa') => {
+  const addCompra = async (produto, quantidade, unidade, valor, data, descricao = '', fornecedorId = null, caixas = null, tipo = 'caixa', loja = null) => {
     const novaCompra = {
       produto,
       quantidade: parseFloat(quantidade),
@@ -24,7 +24,8 @@ const ceasaManager = (() => {
       descricao,
       fornecedor_id: fornecedorId || null,
       caixas: caixas != null ? caixas : null,
-      tipo: tipo || 'caixa'
+      tipo: tipo || 'caixa',
+      loja: loja || null
     };
 
     const { data: inserted, error } = await window.supabaseClient
@@ -43,7 +44,7 @@ const ceasaManager = (() => {
     return inserted;
   };
 
-  const updateCompra = async (id, produto, quantidade, unidade, valor, data, descricao = '', fornecedorId = null, caixas = null, tipo = 'caixa') => {
+  const updateCompra = async (id, produto, quantidade, unidade, valor, data, descricao = '', fornecedorId = null, caixas = null, tipo = 'caixa', loja = null) => {
     const { data: updated, error } = await window.supabaseClient
       .from('ceasa_compras')
       .update({
@@ -55,7 +56,8 @@ const ceasaManager = (() => {
         descricao,
         fornecedor_id: fornecedorId || null,
         caixas: caixas != null ? caixas : null,
-        tipo: tipo || 'caixa'
+        tipo: tipo || 'caixa',
+        loja: loja || null
       })
       .eq('id', id)
       .select()
@@ -134,6 +136,7 @@ const ceasaManager = (() => {
 const ceasaUI = (() => {
   let filtroAno = new Date().getFullYear();
   let filtroMes = new Date().getMonth() + 1;
+  let filtroLoja = '';
 
   const formatarData = (dataISO) => {
     const [year, month, day] = dataISO.split('-');
@@ -190,6 +193,14 @@ const ceasaUI = (() => {
           <h3 style="margin: 0 0 16px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtrar por período</h3>
           
           <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div>
+              <label for="filtroLoja" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Loja</label>
+              <select id="filtroLoja" class="filtro-select" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
+                <option value="">Todas as lojas</option>
+                <option value="AREA VERDE">AREA VERDE</option>
+                <option value="SUPER MACHADO">SUPER MACHADO</option>
+              </select>
+            </div>
             <div>
               <label for="filtroMes" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Mês</label>
               <select id="filtroMes" class="filtro-select" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
@@ -275,7 +286,13 @@ const ceasaUI = (() => {
   let fornecedorSelected = null;
 
   const renderDias = async () => {
-    const compras = await ceasaManager.getComprasPorMes(filtroAno, filtroMes);
+    let compras = await ceasaManager.getComprasPorMes(filtroAno, filtroMes);
+    
+    // Filtrar por loja se selecionado
+    if (filtroLoja) {
+      compras = compras.filter(c => c.loja === filtroLoja);
+    }
+    
     const ceasaContent = document.getElementById('ceasaContent');
     
     if (compras.length === 0) {
@@ -489,6 +506,7 @@ const ceasaUI = (() => {
       btnAplicar.addEventListener('click', async () => {
         filtroMes = parseInt(document.getElementById('filtroMes').value);
         filtroAno = parseInt(document.getElementById('filtroAno').value);
+        filtroLoja = document.getElementById('filtroLoja').value;
         await renderLista();
       });
     }
@@ -557,7 +575,16 @@ const ceasaUI = (() => {
               <label for="dataCompra">Data da compra *</label>
               <input type="date" id="dataCompra" name="dataCompra" value="${hoje}" required />
             </div>
-            <!-- 2. Fornecedor -->
+            <!-- 2. Loja -->
+            <div class="form-group">
+              <label for="lojaCompra">Loja *</label>
+              <select id="lojaCompra" name="lojaCompra" required>
+                <option value="">Selecione...</option>
+                <option value="AREA VERDE">AREA VERDE</option>
+                <option value="SUPER MACHADO">SUPER MACHADO</option>
+              </select>
+            </div>
+            <!-- 3. Fornecedor -->
             <div class="form-group">
               <label for="fornecedorSelect">Fornecedor *</label>
               <select id="fornecedorSelect" name="fornecedorSelect" required>
@@ -849,6 +876,7 @@ const ceasaUI = (() => {
       }
 
       const dataCompra = dataCompraInput.value;
+      const lojaCompra = document.getElementById('lojaCompra').value;
       const fornecedorId = fornecedorSelect.value;
       const descricao = document.getElementById('descricao').value.trim();
       const fornecedor = fornecedores.find(f => f.id === fornecedorId);
@@ -869,7 +897,8 @@ const ceasaUI = (() => {
           descFinal,
           fornecedorId,
           p.caixas,
-          p.tipo || 'caixa'
+          p.tipo || 'caixa',
+          lojaCompra
         );
       }
 
@@ -915,7 +944,16 @@ const ceasaUI = (() => {
               <label for="dataCompra">Data da compra *</label>
               <input type="date" id="dataCompra" name="dataCompra" value="${dataCompra}" required />
             </div>
-            <!-- 2. Fornecedor -->
+            <!-- 2. Loja -->
+            <div class="form-group">
+              <label for="lojaCompra">Loja *</label>
+              <select id="lojaCompra" name="lojaCompra" required>
+                <option value="">Selecione...</option>
+                <option value="AREA VERDE" ${compra.loja === 'AREA VERDE' ? 'selected' : ''}>AREA VERDE</option>
+                <option value="SUPER MACHADO" ${compra.loja === 'SUPER MACHADO' ? 'selected' : ''}>SUPER MACHADO</option>
+              </select>
+            </div>
+            <!-- 3. Fornecedor -->
             <div class="form-group">
               <label for="fornecedorSelect">Fornecedor *</label>
               <select id="fornecedorSelect" name="fornecedorSelect" required>
@@ -1035,6 +1073,7 @@ const ceasaUI = (() => {
       e.preventDefault();
 
       const dataCompra = dataCompraInput.value;
+      const lojaCompra = document.getElementById('lojaCompra').value;
       const fornecedorId = fornecedorSelect.value;
       const descricao = document.getElementById('descricao').value.trim();
       const fornecedor = fornecedores.find(f => f.id === fornecedorId);
@@ -1059,7 +1098,8 @@ const ceasaUI = (() => {
         descFinal,
         fornecedorId,
         produtoAtual.caixas,
-        produtoAtual.tipo || 'caixa'
+        produtoAtual.tipo || 'caixa',
+        lojaCompra
       );
 
       await backToList();

@@ -181,6 +181,7 @@ const quebrasManager = (() => {
 const quebrasUI = (() => {
   let filtroAno = new Date().getFullYear();
   let filtroMes = new Date().getMonth() + 1;
+  let filtroLoja = '';
 
   const formatarData = (dataISO) => {
     const [year, month, day] = dataISO.split('-');
@@ -239,6 +240,11 @@ const quebrasUI = (() => {
       <div class="filtro-wrapper">
         <label>Filtrar por período:</label>
         <div class="filtro-inputs">
+          <select id="filtroLoja" class="filtro-select">
+            <option value="">Todas as lojas</option>
+            <option value="AREA VERDE">AREA VERDE</option>
+            <option value="SUPER MACHADO">SUPER MACHADO</option>
+          </select>
           <select id="filtroMes" class="filtro-select">
             ${mesesOptions}
           </select>
@@ -260,11 +266,31 @@ const quebrasUI = (() => {
       }
 
       console.log('📋 Carregando quebras...');
-      const quebrasOrdenadas = await quebrasManager.getQuebrasPorMesOrdenadas(filtroAno, filtroMes);
+      let quebrasOrdenadas = await quebrasManager.getQuebrasPorMesOrdenadas(filtroAno, filtroMes);
       console.log('✅ Quebras ordenadas carregadas:', quebrasOrdenadas.length);
       
-      const todasQuebras = await quebrasManager.getQuebrasPorMes(filtroAno, filtroMes);
+      let todasQuebras = await quebrasManager.getQuebrasPorMes(filtroAno, filtroMes);
       console.log('✅ Todas as quebras carregadas:', todasQuebras.length);
+
+      // Filtrar por loja se selecionado
+      if (filtroLoja) {
+        const { data: funcionarios } = await window.supabaseClient
+          .from('funcionarios')
+          .select('nome, loja');
+        
+        if (funcionarios) {
+          const funcionariosLoja = funcionarios
+            .filter(f => f.loja === filtroLoja)
+            .map(f => f.nome);
+          
+          quebrasOrdenadas = quebrasOrdenadas.filter(item => 
+            funcionariosLoja.includes(item.nome)
+          );
+          todasQuebras = todasQuebras.filter(item => 
+            funcionariosLoja.includes(item.funcionario_nome)
+          );
+        }
+      }
 
       let html = `
         <div class="filtro-container">
@@ -349,11 +375,13 @@ const quebrasUI = (() => {
     const btnAplicar = document.getElementById('btnAplicarFiltro');
     const selectMes = document.getElementById('filtroMes');
     const selectAno = document.getElementById('filtroAno');
+    const selectLoja = document.getElementById('filtroLoja');
 
     if (btnAplicar) {
       btnAplicar.addEventListener('click', async () => {
         filtroAno = parseInt(selectAno.value);
         filtroMes = parseInt(selectMes.value);
+        filtroLoja = selectLoja.value;
         await renderLista();
       });
     }

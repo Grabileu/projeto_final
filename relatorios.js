@@ -57,6 +57,14 @@ const relatóriosUI = (() => {
           
           <div style="display: flex; flex-direction: column; gap: 12px;">
             <div>
+              <label for="filtroLoja" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Loja</label>
+              <select id="filtroLoja" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
+                <option value="__todos__">Todas as lojas</option>
+                <option value="AREA VERDE">AREA VERDE</option>
+                <option value="SUPER MACHADO">SUPER MACHADO</option>
+              </select>
+            </div>
+            <div>
               <label for="filtroInicio" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Data início</label>
               <input type="date" id="filtroInicio" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
             </div>
@@ -396,12 +404,22 @@ const relatóriosUI = (() => {
       const fim = document.getElementById('filtroFim').value;
       const funcSel = document.getElementById('filtroFuncionario').value;
       const tipoSel = document.getElementById('filtroTipo').value;
+      const lojaSel = document.getElementById('filtroLoja').value;
+      
       const filtrados = quebras.filter(q => {
         const dataOK = (!inicio || q.data >= inicio) && (!fim || q.data <= fim);
         const nome = obterNomeFuncionario(q);
         const funcOK = (funcSel === '__todos__' || nome === funcSel);
         const tipoOK = (tipoSel === '__todos__' || (q.tipo || '-') === tipoSel);
-        return dataOK && funcOK && tipoOK;
+        
+        // Filtrar por loja através do funcionário
+        let lojaOK = true;
+        if (lojaSel !== '__todos__') {
+          const func = funcionarios.find(f => f.id === q.funcionario_id || f.nome === nome);
+          lojaOK = func && func.loja === lojaSel;
+        }
+        
+        return dataOK && funcOK && tipoOK && lojaOK;
       });
       relatorioContainer.innerHTML = construirConteudoRelatorio(filtrados);
       return filtrados;
@@ -412,6 +430,7 @@ const relatóriosUI = (() => {
       document.getElementById('filtroFim').value = '';
       document.getElementById('filtroFuncionario').value = '__todos__';
       document.getElementById('filtroTipo').value = '__todos__';
+      document.getElementById('filtroLoja').value = '__todos__';
       relatorioContainer.innerHTML = construirConteudoRelatorio(quebras);
     };
 
@@ -475,7 +494,7 @@ const relatóriosUI = (() => {
 
     document.getElementById('btnAplicarFiltrosQuebras').addEventListener('click', aplicarFiltros);
     document.getElementById('btnLimparFiltrosQuebras').addEventListener('click', limparFiltros);
-    ['filtroInicio','filtroFim','filtroFuncionario','filtroTipo','filtroForma'].forEach(id => {
+    ['filtroInicio','filtroFim','filtroFuncionario','filtroTipo','filtroForma','filtroLoja'].forEach(id => {
       const el = document.getElementById(id);
       el.addEventListener('change', aplicarFiltros);
     });
@@ -524,6 +543,14 @@ const relatóriosUI = (() => {
           <h3 style="margin: 0 0 16px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtros</h3>
           
           <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div>
+              <label for="filtroLojaFaltas" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Loja</label>
+              <select id="filtroLojaFaltas" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
+                <option value="__todos__">Todas as lojas</option>
+                <option value="AREA VERDE">AREA VERDE</option>
+                <option value="SUPER MACHADO">SUPER MACHADO</option>
+              </select>
+            </div>
             <div>
               <label for="filtroInicioFaltas" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Data início</label>
               <input type="date" id="filtroInicioFaltas" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
@@ -787,6 +814,7 @@ const relatóriosUI = (() => {
       const fim = document.getElementById('filtroFimFaltas').value;
       const funcSel = document.getElementById('filtroFuncionarioFaltas').value;
       const tipoSel = document.getElementById('filtroTipoFaltas').value;
+      const lojaSel = document.getElementById('filtroLojaFaltas').value;
       
       const filtrados = faltas.filter(f => {
         const dataOK = (!inicio || f.data >= inicio) && (!fim || f.data <= fim);
@@ -795,7 +823,14 @@ const relatóriosUI = (() => {
         const funcOK = (funcSel === '__todos__' || funcionarioNome === funcSel);
         const tipo = f.tipo || 'falta';
         const tipoOK = (tipoSel === '__todos__' || tipo === tipoSel);
-        return dataOK && funcOK && tipoOK;
+        
+        // Filtrar por loja
+        let lojaOK = true;
+        if (lojaSel !== '__todos__') {
+          lojaOK = func && func.loja === lojaSel;
+        }
+        
+        return dataOK && funcOK && tipoOK && lojaOK;
       });
       relatorioContainer.innerHTML = construirRelatorioFaltas(filtrados);
       return filtrados;
@@ -806,6 +841,7 @@ const relatóriosUI = (() => {
       document.getElementById('filtroFimFaltas').value = '';
       document.getElementById('filtroFuncionarioFaltas').value = '__todos__';
       document.getElementById('filtroTipoFaltas').value = '__todos__';
+      document.getElementById('filtroLojaFaltas').value = '__todos__';
       relatorioContainer.innerHTML = construirRelatorioFaltas(faltas);
     };
 
@@ -869,7 +905,7 @@ const relatóriosUI = (() => {
 
     document.getElementById('btnAplicarFiltrosFaltas').addEventListener('click', aplicarFiltrosFaltas);
     document.getElementById('btnLimparFiltrosFaltas').addEventListener('click', limparFiltrosFaltas);
-    ['filtroInicioFaltas','filtroFimFaltas','filtroFuncionarioFaltas','filtroTipoFaltas'].forEach(id => {
+    ['filtroInicioFaltas','filtroFimFaltas','filtroFuncionarioFaltas','filtroTipoFaltas','filtroLojaFaltas'].forEach(id => {
       const el = document.getElementById(id);
       el.addEventListener('change', aplicarFiltrosFaltas);
     });
@@ -918,6 +954,14 @@ const relatóriosUI = (() => {
           <h3 style="margin: 0 0 16px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtros</h3>
           
           <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div>
+              <label for="filtroLojaCeasa" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Loja</label>
+              <select id="filtroLojaCeasa" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
+                <option value="__todos__">Todas as lojas</option>
+                <option value="AREA VERDE">AREA VERDE</option>
+                <option value="SUPER MACHADO">SUPER MACHADO</option>
+              </select>
+            </div>
             <div>
               <label for="filtroInicioCeasa" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Data início</label>
               <input type="date" id="filtroInicioCeasa" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
@@ -1175,13 +1219,21 @@ const relatóriosUI = (() => {
       const inicio = document.getElementById('filtroInicioCeasa').value;
       const fim = document.getElementById('filtroFimCeasa').value;
       const fornSel = document.getElementById('filtroFornecedorCeasa').value;
+      const lojaSel = document.getElementById('filtroLojaCeasa').value;
       
       const filtrados = compras.filter(c => {
         const dataOK = (!inicio || c.data >= inicio) && (!fim || c.data <= fim);
         const fornObj = fornecedores.find(f => f.id === c.fornecedor_id);
         const fornecedorNome = fornObj ? fornObj.nome : 'Sem fornecedor';
         const fornOK = (fornSel === '__todos__' || fornecedorNome === fornSel);
-        return dataOK && fornOK;
+        
+        // Filtrar por loja
+        let lojaOK = true;
+        if (lojaSel !== '__todos__') {
+          lojaOK = c.loja === lojaSel;
+        }
+        
+        return dataOK && fornOK && lojaOK;
       });
       relatorioContainer.innerHTML = construirRelatorioCeasa(filtrados);
       return filtrados;
@@ -1191,6 +1243,7 @@ const relatóriosUI = (() => {
       document.getElementById('filtroInicioCeasa').value = '';
       document.getElementById('filtroFimCeasa').value = '';
       document.getElementById('filtroFornecedorCeasa').value = '__todos__';
+      document.getElementById('filtroLojaCeasa').value = '__todos__';
       relatorioContainer.innerHTML = construirRelatorioCeasa(compras);
     };
 
@@ -1261,7 +1314,7 @@ const relatóriosUI = (() => {
 
     document.getElementById('btnAplicarFiltrosCeasa').addEventListener('click', aplicarFiltrosCeasa);
     document.getElementById('btnLimparFiltrosCeasa').addEventListener('click', limparFiltrosCeasa);
-    ['filtroInicioCeasa','filtroFimCeasa','filtroFornecedorCeasa'].forEach(id => {
+    ['filtroInicioCeasa','filtroFimCeasa','filtroFornecedorCeasa','filtroLojaCeasa'].forEach(id => {
       const el = document.getElementById(id);
       el.addEventListener('change', aplicarFiltrosCeasa);
     });
@@ -1308,6 +1361,14 @@ const relatóriosUI = (() => {
           <h3 style="margin: 0 0 16px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtros</h3>
           
           <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div>
+              <label for="filtroLojaFuncionarios" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Loja</label>
+              <select id="filtroLojaFuncionarios" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
+                <option value="__todos__">Todas as lojas</option>
+                <option value="AREA VERDE">AREA VERDE</option>
+                <option value="SUPER MACHADO">SUPER MACHADO</option>
+              </select>
+            </div>
             <div>
               <label for="filtroCargoFuncionarios" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Cargo</label>
               <select id="filtroCargoFuncionarios" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
@@ -1505,10 +1566,12 @@ const relatóriosUI = (() => {
     
     const aplicarFiltrosFuncionarios = () => {
       const cargoSel = document.getElementById('filtroCargoFuncionarios').value;
+      const lojaSel = document.getElementById('filtroLojaFuncionarios').value;
       
       const filtrados = funcionarios.filter(f => {
         const cargoOK = (cargoSel === '__todos__' || (f.cargo || '-') === cargoSel);
-        return cargoOK;
+        const lojaOK = (lojaSel === '__todos__' || f.loja === lojaSel);
+        return cargoOK && lojaOK;
       });
       relatorioContainer.innerHTML = construirRelatorioFuncionarios(filtrados);
       return filtrados;
@@ -1516,6 +1579,7 @@ const relatóriosUI = (() => {
     
     const limparFiltrosFuncionarios = () => {
       document.getElementById('filtroCargoFuncionarios').value = '__todos__';
+      document.getElementById('filtroLojaFuncionarios').value = '__todos__';
       relatorioContainer.innerHTML = construirRelatorioFuncionarios(funcionarios);
     };
 
@@ -1584,6 +1648,7 @@ const relatóriosUI = (() => {
     document.getElementById('btnAplicarFiltrosFuncionarios').addEventListener('click', aplicarFiltrosFuncionarios);
     document.getElementById('btnLimparFiltrosFuncionarios').addEventListener('click', limparFiltrosFuncionarios);
     document.getElementById('filtroCargoFuncionarios').addEventListener('change', aplicarFiltrosFuncionarios);
+    document.getElementById('filtroLojaFuncionarios').addEventListener('change', aplicarFiltrosFuncionarios);
   };
 
   return {

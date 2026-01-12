@@ -14,13 +14,14 @@ const FuncionariosManager = (() => {
     return data || [];
   };
 
-  const addFuncionario = async (nome, cargo, dataAdmissao, cpf, salario) => {
+  const addFuncionario = async (nome, cargo, dataAdmissao, cpf, salario, loja) => {
     const novoFuncionario = {
       nome,
       cargo,
       data_admissao: dataAdmissao,
       cpf,
-      salario: parseFloat(salario)
+      salario: parseFloat(salario),
+      loja: loja || null
     };
 
     const { data, error } = await window.supabaseClient
@@ -39,7 +40,7 @@ const FuncionariosManager = (() => {
     return data;
   };
 
-  const updateFuncionario = async (id, nome, cargo, dataAdmissao, cpf, salario) => {
+  const updateFuncionario = async (id, nome, cargo, dataAdmissao, cpf, salario, loja) => {
     const { data, error } = await window.supabaseClient
       .from('funcionarios')
       .update({
@@ -47,7 +48,8 @@ const FuncionariosManager = (() => {
         cargo,
         data_admissao: dataAdmissao,
         cpf,
-        salario: parseFloat(salario)
+        salario: parseFloat(salario),
+        loja: loja || null
       })
       .eq('id', id)
       .select()
@@ -123,12 +125,27 @@ const FuncionariosUI = (() => {
       return;
     }
 
-    let html = '<div class="nomes-list"><ul>';
+    // Filtro por loja
+    let html = `
+      <div style="margin-bottom: 16px; display: flex; gap: 8px; align-items: center;">
+        <label for="filtroLoja" style="font-weight: 600;">Filtrar por loja:</label>
+        <select id="filtroLoja" style="padding: 6px 12px; border: 1px solid #d1d5db; border-radius: 6px;">
+          <option value="">Todas as lojas</option>
+          <option value="AREA VERDE">AREA VERDE</option>
+          <option value="SUPER MACHADO">SUPER MACHADO</option>
+        </select>
+      </div>
+    `;
+    
+    html += '<div class="nomes-list"><ul id="listaFuncionarios">';
     
     funcionarios.forEach(f => {
       html += `
-        <li class="nome-item">
-          <span class="nome-text">${f.nome}</span>
+        <li class="nome-item" data-loja="${f.loja || ''}">
+          <div>
+            <span class="nome-text">${f.nome}</span>
+            <div style="font-size: 0.85rem; color: #6b7280; margin-top: 2px;">${f.loja || 'Sem loja'}</div>
+          </div>
           <div class="nome-actions">
             <button class="btn-edit-action" data-id="${f.id}" title="Editar">✏️</button>
             <button class="btn-delete-action" data-id="${f.id}" title="Excluir">🗑️</button>
@@ -139,6 +156,19 @@ const FuncionariosUI = (() => {
 
     html += '</ul></div>';
     panelBody.innerHTML = html;
+
+    // Filtro
+    document.getElementById('filtroLoja').addEventListener('change', (e) => {
+      const loja = e.target.value;
+      document.querySelectorAll('.nome-item').forEach(item => {
+        const itemLoja = item.getAttribute('data-loja');
+        if (!loja || itemLoja === loja) {
+          item.style.display = 'flex';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    });
 
     // Event listeners para editar
     document.querySelectorAll('.btn-edit-action').forEach(btn => {
@@ -205,8 +235,14 @@ const FuncionariosUI = (() => {
                 <option>Salão</option>
                 <option>Gerente</option>
               </select>
-            </div>
-          </div>
+            </div>            <div class="form-group">
+              <label for="loja">Loja *</label>
+              <select id="loja" name="loja" required>
+                <option value="">Selecione...</option>
+                <option>AREA VERDE</option>
+                <option>SUPER MACHADO</option>
+              </select>
+            </div>          </div>
 
           <div class="form-row">
             <div class="form-group">
@@ -246,12 +282,13 @@ const FuncionariosUI = (() => {
       e.preventDefault();
       const nome = document.getElementById('nome').value.trim();
       const cargo = document.getElementById('cargo').value.trim();
+      const loja = document.getElementById('loja').value.trim();
       const cpf = document.getElementById('cpf').value.replace(/\D/g, '');
       const dataAdmissao = document.getElementById('dataAdmissao').value;
       const salarioInput = document.getElementById('salario').value;
       const salario = salarioInput ? parseFloat(salarioInput) : null;
 
-      if (!nome || !cargo || !cpf || !dataAdmissao) {
+      if (!nome || !cargo || !loja || !cpf || !dataAdmissao) {
         alert('Preencha os campos obrigatórios!');
         return;
       }
@@ -261,7 +298,7 @@ const FuncionariosUI = (() => {
         return;
       }
 
-      await FuncionariosManager.addFuncionario(nome, cargo, dataAdmissao, cpf, salario);
+      await FuncionariosManager.addFuncionario(nome, cargo, dataAdmissao, cpf, salario, loja);
       await backToList();
     });
 
@@ -297,6 +334,13 @@ const FuncionariosUI = (() => {
               <select id="cargo" name="cargo" required>
                 ${['Caixa','Repositor','Assistente administrativo','Frente de loja','Balconista','Serviços gerais','Salão','Gerente']
                   .map(opt => `<option value="${opt}" ${funcionario.cargo===opt ? 'selected' : ''}>${opt}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="loja">Loja *</label>
+              <select id="loja" name="loja" required>
+                <option value="AREA VERDE" ${funcionario.loja==='AREA VERDE' ? 'selected' : ''}>AREA VERDE</option>
+                <option value="SUPER MACHADO" ${funcionario.loja==='SUPER MACHADO' ? 'selected' : ''}>SUPER MACHADO</option>
               </select>
             </div>
           </div>
@@ -339,12 +383,13 @@ const FuncionariosUI = (() => {
       e.preventDefault();
       const nome = document.getElementById('nome').value.trim();
       const cargo = document.getElementById('cargo').value.trim();
+      const loja = document.getElementById('loja').value.trim();
       const cpf = document.getElementById('cpf').value.replace(/\D/g, '');
       const dataAdmissao = document.getElementById('dataAdmissao').value;
       const salarioInput = document.getElementById('salario').value;
       const salario = salarioInput ? parseFloat(salarioInput) : null;
 
-      if (!nome || !cargo || !cpf || !dataAdmissao) {
+      if (!nome || !cargo || !loja || !cpf || !dataAdmissao) {
         alert('Preencha os campos obrigatórios!');
         return;
       }
@@ -354,7 +399,7 @@ const FuncionariosUI = (() => {
         return;
       }
 
-      await FuncionariosManager.updateFuncionario(id, nome, cargo, dataAdmissao, cpf, salario);
+      await FuncionariosManager.updateFuncionario(id, nome, cargo, dataAdmissao, cpf, salario, loja);
       await backToList();
     });
 
