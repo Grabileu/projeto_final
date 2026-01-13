@@ -277,21 +277,32 @@ const FaltasUI = (() => {
     });
 
     return `
-      <div class="filtro-wrapper">
-        <label>Filtrar por período:</label>
-        <div class="filtro-inputs">
-          <select id="filtroMes" class="filtro-select">
-            ${mesesOptions}
-          </select>
-          <select id="filtroAno" class="filtro-select">
-            ${anosOptions}
-          </select>
-          <select id="filtroLoja" class="filtro-select">
-            <option value="">Todas as lojas</option>
-            <option value="AREA VERDE">AREA VERDE</option>
-            <option value="SUPER MACHADO">SUPER MACHADO</option>
-          </select>
-          <button id="btnAplicarFiltro" class="btn btn-filtro">Aplicar</button>
+      <div style="margin-bottom: 20px; padding: 16px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <h3 style="margin: 0 0 12px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtrar por período</h3>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 150px;">
+            <label for="filtroMes" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Mês</label>
+            <select id="filtroMes" class="filtro-select" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
+              ${mesesOptions}
+            </select>
+          </div>
+          <div style="flex: 1; min-width: 150px;">
+            <label for="filtroAno" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Ano</label>
+            <select id="filtroAno" class="filtro-select" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
+              ${anosOptions}
+            </select>
+          </div>
+          <div style="flex: 1; min-width: 150px;">
+            <label for="filtroLoja" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Loja</label>
+            <select id="filtroLoja" class="filtro-select" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
+              <option value="">Todas as lojas</option>
+              <option value="AREA VERDE">AREA VERDE</option>
+              <option value="SUPER MACHADO">SUPER MACHADO</option>
+            </select>
+          </div>
+          <div style="display: flex; align-items: flex-end;">
+            <button id="btnAplicarFiltro" class="btn btn-filtro" style="padding: 10px 20px; background: #3B82F6; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Aplicar</button>
+          </div>
         </div>
       </div>
     `;

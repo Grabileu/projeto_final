@@ -15,7 +15,10 @@ const relatóriosUI = (() => {
     const panelBody = document.querySelector('.panel-body');
     document.querySelector('.page-title').textContent = 'Relatórios - Quebras de Caixa';
     const btnAction = document.getElementById('btnAction');
-    if (btnAction) btnAction.style.display = 'none';
+    if (btnAction) {
+      btnAction.style.display = 'none';
+      btnAction.style.visibility = 'hidden';
+    }
 
     const quebras = await quebrasManager.getQuebras();
     const funcionarios = await FuncionariosManager.getFuncionarios();
@@ -29,34 +32,12 @@ const relatóriosUI = (() => {
     const tiposDisponiveis = Array.from(new Set(quebras.map(q => q.tipo || '-'))).sort((a,b)=>a.localeCompare(b));
 
     let html = `
-      <div style="display: flex; gap: 16px; height: calc(100vh - 200px);">
-        <!-- PAINEL LATERAL -->
-        <aside id="filtersQuebras" style="
-          width: 300px;
-          background: #ffffff;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          padding: 16px;
-          overflow-y: auto;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-          position: relative;
-        ">
-          <button id="btnCloseFiltros" style="
-            display: none;
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #6b7280;
-          ">✕</button>
-          
-          <h3 style="margin: 0 0 16px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtros</h3>
-          
-          <div style="display: flex; flex-direction: column; gap: 12px;">
-            <div>
+      <div style="width: 100%; height: calc(100vh - 200px);">
+        <!-- FILTROS NO TOPO -->
+        <div style="margin-bottom: 20px; padding: 16px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+          <h3 style="margin: 0 0 12px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtros</h3>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;">
+            <div style="flex: 1; min-width: 150px;">
               <label for="filtroLoja" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Loja</label>
               <select id="filtroLoja" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
                 <option value="__todos__">Todas as lojas</option>
@@ -64,29 +45,29 @@ const relatóriosUI = (() => {
                 <option value="SUPER MACHADO">SUPER MACHADO</option>
               </select>
             </div>
-            <div>
+            <div style="flex: 1; min-width: 150px;">
               <label for="filtroInicio" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Data início</label>
               <input type="date" id="filtroInicio" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
             </div>
-            <div>
+            <div style="flex: 1; min-width: 150px;">
               <label for="filtroFim" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Data fim</label>
               <input type="date" id="filtroFim" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
             </div>
-            <div>
+            <div style="flex: 1; min-width: 150px;">
               <label for="filtroFuncionario" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Funcionário</label>
               <select id="filtroFuncionario" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
                 <option value="__todos__">Todos</option>
                 ${nomesFuncionarios.map(n => `<option value="${n}">${n}</option>`).join('')}
               </select>
             </div>
-            <div>
+            <div style="flex: 1; min-width: 150px;">
               <label for="filtroTipo" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Tipo</label>
               <select id="filtroTipo" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
                 <option value="__todos__">Todos</option>
                 ${tiposDisponiveis.map(t => `<option value="${t}">${t}</option>`).join('')}
               </select>
             </div>
-            <div>
+            <div style="flex: 1; min-width: 150px;">
               <label for="filtroForma" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Forma</label>
               <select id="filtroForma" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
                 <option value="geral">Geral</option>
@@ -94,64 +75,17 @@ const relatóriosUI = (() => {
               </select>
             </div>
           </div>
-          
-          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 16px; border-top: 1px solid #e5e7eb; padding-top: 12px;">
-            <button id="btnAplicarFiltrosQuebras" class="btn primary" style="cursor: pointer; width: 100%; padding: 10px;">Aplicar</button>
-            <button id="btnLimparFiltrosQuebras" class="btn secondary" style="cursor: pointer; width: 100%; padding: 10px;">Limpar</button>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <button id="btnAplicarFiltrosQuebras" class="btn primary" style="cursor: pointer; padding: 10px 20px; background: #3B82F6; color: white; border: none; border-radius: 6px; font-weight: 600;">Aplicar</button>
+            <button id="btnLimparFiltrosQuebras" class="btn secondary" style="cursor: pointer; padding: 10px 20px; background: #6B7280; color: white; border: none; border-radius: 6px; font-weight: 600;">Limpar</button>
+            <button id="btnImprimirQuebras" class="btn primary" style="cursor: pointer; padding: 10px 20px; background: #059669; color: white; border: none; border-radius: 6px; font-weight: 600;">🖨️ Imprimir</button>
+            <button id="btnExportarQuebras" class="btn secondary" style="cursor: pointer; padding: 10px 20px; background: #0891B2; color: white; border: none; border-radius: 6px; font-weight: 600;">📊 Exportar Excel</button>
           </div>
-        </aside>
+        </div>
 
         <!-- ÁREA PRINCIPAL -->
-        <main style="flex: 1; overflow-y: auto;">
-          <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
-            <button id="btnToggleFiltros" class="btn primary" style="cursor: pointer; display: none;">🔽 Filtros</button>
-            <button id="btnImprimirQuebras" class="btn primary" style="cursor: pointer;">🖨️ Imprimir</button>
-            <button id="btnExportarQuebras" class="btn secondary" style="cursor: pointer;">📊 Exportar para Excel</button>
-          </div>
-          <div id="relatorioPrintQuebras" style="background: white; padding: 20px; border-radius: 8px;"></div>
-        </main>
+        <div id="relatorioPrintQuebras" style="background: white; padding: 20px; border-radius: 8px; overflow-y: auto; max-height: calc(100vh - 400px);"></div>
       </div>
-
-      <!-- RESPONSIVO CSS -->
-      <style>
-        @media (max-width: 1024px) {
-          #filtersQuebras {
-            width: 280px;
-          }
-        }
-
-        @media (max-width: 768px) {
-          [data-panel="quebras-container"] {
-            display: flex;
-            flex-direction: column;
-            height: auto;
-          }
-
-          #filtersQuebras {
-            width: 100%;
-            height: auto;
-            position: fixed;
-            top: 0;
-            left: -300px;
-            z-index: 1000;
-            transition: left 0.3s ease;
-            border-radius: 0;
-          }
-
-          #filtersQuebras.active {
-            left: 0;
-            box-shadow: 2px 0 8px rgba(0,0,0,0.2);
-          }
-
-          #btnToggleFiltros {
-            display: flex !important;
-          }
-
-          #btnCloseFiltros {
-            display: block !important;
-          }
-        }
-      </style>
     `;
 
     panelBody.innerHTML = html;
@@ -505,7 +439,10 @@ const relatóriosUI = (() => {
     const panelBody = document.querySelector('.panel-body');
     document.querySelector('.page-title').textContent = 'Relatórios - Faltas e Atestados';
     const btnAction = document.getElementById('btnAction');
-    if (btnAction) btnAction.style.display = 'none';
+    if (btnAction) {
+      btnAction.style.display = 'none';
+      btnAction.style.visibility = 'hidden';
+    }
 
     const faltas = await (FaltasManager.getFaltas ? FaltasManager.getFaltas() : []);
     const funcionarios = await FuncionariosManager.getFuncionarios();
@@ -516,34 +453,12 @@ const relatóriosUI = (() => {
     }))).sort((a,b)=>a.localeCompare(b));
 
     let html = `
-      <div style="display: flex; gap: 16px; height: calc(100vh - 200px);">
-        <!-- PAINEL LATERAL -->
-        <aside id="filtersFaltas" style="
-          width: 300px;
-          background: #ffffff;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          padding: 16px;
-          overflow-y: auto;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-          position: relative;
-        ">
-          <button id="btnCloseFiltrosFaltas" style="
-            display: none;
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #6b7280;
-          ">✕</button>
-          
-          <h3 style="margin: 0 0 16px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtros</h3>
-          
-          <div style="display: flex; flex-direction: column; gap: 12px;">
-            <div>
+      <div style="width: 100%; height: calc(100vh - 200px);">
+        <!-- FILTROS NO TOPO -->
+        <div style="margin-bottom: 20px; padding: 16px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+          <h3 style="margin: 0 0 12px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtros</h3>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;">
+            <div style="flex: 1; min-width: 150px;">
               <label for="filtroLojaFaltas" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Loja</label>
               <select id="filtroLojaFaltas" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
                 <option value="__todos__">Todas as lojas</option>
@@ -551,22 +466,22 @@ const relatóriosUI = (() => {
                 <option value="SUPER MACHADO">SUPER MACHADO</option>
               </select>
             </div>
-            <div>
+            <div style="flex: 1; min-width: 150px;">
               <label for="filtroInicioFaltas" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Data início</label>
               <input type="date" id="filtroInicioFaltas" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
             </div>
-            <div>
+            <div style="flex: 1; min-width: 150px;">
               <label for="filtroFimFaltas" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Data fim</label>
               <input type="date" id="filtroFimFaltas" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
             </div>
-            <div>
+            <div style="flex: 1; min-width: 150px;">
               <label for="filtroFuncionarioFaltas" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Funcionário</label>
               <select id="filtroFuncionarioFaltas" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
                 <option value="__todos__">Todos</option>
                 ${nomesFuncionarios.map(n => `<option value="${n}">${n}</option>`).join('')}
               </select>
             </div>
-            <div>
+            <div style="flex: 1; min-width: 150px;">
               <label for="filtroTipoFaltas" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Tipo</label>
               <select id="filtroTipoFaltas" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
                 <option value="__todos__">Todos</option>
@@ -575,21 +490,16 @@ const relatóriosUI = (() => {
               </select>
             </div>
           </div>
-          
-          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 16px; border-top: 1px solid #e5e7eb; padding-top: 12px;">
-            <button id="btnAplicarFiltrosFaltas" class="btn primary" style="cursor: pointer; width: 100%; padding: 10px;">Aplicar</button>
-            <button id="btnLimparFiltrosFaltas" class="btn secondary" style="cursor: pointer; width: 100%; padding: 10px;">Limpar</button>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <button id="btnAplicarFiltrosFaltas" class="btn primary" style="cursor: pointer; padding: 10px 20px; background: #3B82F6; color: white; border: none; border-radius: 6px; font-weight: 600;">Aplicar</button>
+            <button id="btnLimparFiltrosFaltas" class="btn secondary" style="cursor: pointer; padding: 10px 20px; background: #6B7280; color: white; border: none; border-radius: 6px; font-weight: 600;">Limpar</button>
+            <button id="btnImprimirFaltas" class="btn primary" style="cursor: pointer; padding: 10px 20px; background: #059669; color: white; border: none; border-radius: 6px; font-weight: 600;">🖨️ Imprimir</button>
+            <button id="btnExportarFaltas" class="btn secondary" style="cursor: pointer; padding: 10px 20px; background: #0891B2; color: white; border: none; border-radius: 6px; font-weight: 600;">📊 Exportar Excel</button>
           </div>
-        </aside>
+        </div>
 
         <!-- ÁREA PRINCIPAL -->
-        <main style="flex: 1; overflow-y: auto;">
-          <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
-            <button id="btnToggleFiltrosFaltas" class="btn primary" style="cursor: pointer; display: none;">🔽 Filtros</button>
-            <button id="btnImprimirFaltas" class="btn primary" style="cursor: pointer;">🖨️ Imprimir</button>
-            <button id="btnExportarFaltas" class="btn secondary" style="cursor: pointer;">📊 Exportar para Excel</button>
-          </div>
-          <div id="relatorioPrintFaltas" style="background: white; padding: 20px; border-radius: 8px;">
+        <div id="relatorioPrintFaltas" style="background: white; padding: 20px; border-radius: 8px; overflow-y: auto; max-height: calc(100vh - 400px);">
         <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px;">
           <h2 style="margin: 0; color: #111827;">RELATÓRIO DE FALTAS E ATESTADOS</h2>
         </div>
@@ -672,48 +582,7 @@ const relatóriosUI = (() => {
       `;
     }
 
-    html += '</div></main></div>';
-    html += `
-      <style>
-        @media (max-width: 1024px) {
-          #filtersFaltas {
-            width: 280px;
-          }
-        }
-
-        @media (max-width: 768px) {
-          [data-panel="faltas-container"] {
-            display: flex;
-            flex-direction: column;
-            height: auto;
-          }
-
-          #filtersFaltas {
-            width: 100%;
-            height: auto;
-            position: fixed;
-            top: 0;
-            left: -300px;
-            z-index: 1000;
-            transition: left 0.3s ease;
-            border-radius: 0;
-          }
-
-          #filtersFaltas.active {
-            left: 0;
-            box-shadow: 2px 0 8px rgba(0,0,0,0.2);
-          }
-
-          #btnToggleFiltrosFaltas {
-            display: flex !important;
-          }
-
-          #btnCloseFiltrosFaltas {
-            display: block !important;
-          }
-        }
-      </style>
-    `;
+    html += '</div></div>';
 
     panelBody.innerHTML = html;
     panelBody.parentElement.setAttribute('data-panel', 'faltas-container');
@@ -916,7 +785,10 @@ const relatóriosUI = (() => {
     const panelBody = document.querySelector('.panel-body');
     document.querySelector('.page-title').textContent = 'Relatórios - Ceasa';
     const btnAction = document.getElementById('btnAction');
-    if (btnAction) btnAction.style.display = 'none';
+    if (btnAction) {
+      btnAction.style.display = 'none';
+      btnAction.style.visibility = 'hidden';
+    }
 
     const compras = await ceasaManager.getCompras();
     const fornecedores = await FornecedoresManager.getFornecedores();
@@ -927,34 +799,12 @@ const relatóriosUI = (() => {
     }))).sort((a,b)=>a.localeCompare(b));
 
     let html = `
-      <div style="display: flex; gap: 16px; height: calc(100vh - 200px);">
-        <!-- PAINEL LATERAL -->
-        <aside id="filtersCeasa" style="
-          width: 300px;
-          background: #ffffff;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          padding: 16px;
-          overflow-y: auto;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-          position: relative;
-        ">
-          <button id="btnCloseFiltrosCeasa" style="
-            display: none;
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #6b7280;
-          ">✕</button>
-          
-          <h3 style="margin: 0 0 16px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtros</h3>
-          
-          <div style="display: flex; flex-direction: column; gap: 12px;">
-            <div>
+      <div style="width: 100%; height: calc(100vh - 200px);">
+        <!-- FILTROS NO TOPO -->
+        <div style="margin-bottom: 20px; padding: 16px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+          <h3 style="margin: 0 0 12px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtros</h3>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;">
+            <div style="flex: 1; min-width: 150px;">
               <label for="filtroLojaCeasa" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Loja</label>
               <select id="filtroLojaCeasa" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
                 <option value="__todos__">Todas as lojas</option>
@@ -962,15 +812,15 @@ const relatóriosUI = (() => {
                 <option value="SUPER MACHADO">SUPER MACHADO</option>
               </select>
             </div>
-            <div>
+            <div style="flex: 1; min-width: 150px;">
               <label for="filtroInicioCeasa" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Data início</label>
               <input type="date" id="filtroInicioCeasa" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
             </div>
-            <div>
+            <div style="flex: 1; min-width: 150px;">
               <label for="filtroFimCeasa" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Data fim</label>
               <input type="date" id="filtroFimCeasa" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
             </div>
-            <div>
+            <div style="flex: 1; min-width: 150px;">
               <label for="filtroFornecedorCeasa" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Fornecedor</label>
               <select id="filtroFornecedorCeasa" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
                 <option value="__todos__">Todos</option>
@@ -978,21 +828,16 @@ const relatóriosUI = (() => {
               </select>
             </div>
           </div>
-          
-          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 16px; border-top: 1px solid #e5e7eb; padding-top: 12px;">
-            <button id="btnAplicarFiltrosCeasa" class="btn primary" style="cursor: pointer; width: 100%; padding: 10px;">Aplicar</button>
-            <button id="btnLimparFiltrosCeasa" class="btn secondary" style="cursor: pointer; width: 100%; padding: 10px;">Limpar</button>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <button id="btnAplicarFiltrosCeasa" class="btn primary" style="cursor: pointer; padding: 10px 20px; background: #3B82F6; color: white; border: none; border-radius: 6px; font-weight: 600;">Aplicar</button>
+            <button id="btnLimparFiltrosCeasa" class="btn secondary" style="cursor: pointer; padding: 10px 20px; background: #6B7280; color: white; border: none; border-radius: 6px; font-weight: 600;">Limpar</button>
+            <button id="btnImprimirCeasa" class="btn primary" style="cursor: pointer; padding: 10px 20px; background: #059669; color: white; border: none; border-radius: 6px; font-weight: 600;">🖨️ Imprimir</button>
+            <button id="btnExportarCeasa" class="btn secondary" style="cursor: pointer; padding: 10px 20px; background: #0891B2; color: white; border: none; border-radius: 6px; font-weight: 600;">📊 Exportar Excel</button>
           </div>
-        </aside>
+        </div>
 
         <!-- ÁREA PRINCIPAL -->
-        <main style="flex: 1; overflow-y: auto;">
-          <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
-            <button id="btnToggleFiltrosCeasa" class="btn primary" style="cursor: pointer; display: none;">🔽 Filtros</button>
-            <button id="btnImprimirCeasa" class="btn primary" style="cursor: pointer;">🖨️ Imprimir</button>
-            <button id="btnExportarCeasa" class="btn secondary" style="cursor: pointer;">📊 Exportar para Excel</button>
-          </div>
-          <div id="relatorioPrintCeasa" style="background: white; padding: 20px; border-radius: 8px;">
+        <div id="relatorioPrintCeasa" style="background: white; padding: 20px; border-radius: 8px; overflow-y: auto; max-height: calc(100vh - 400px);">
         <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px;">
           <h2 style="margin: 0; color: #111827;">RELATÓRIO DE COMPRAS - CEASA</h2>
         </div>
@@ -1077,48 +922,7 @@ const relatóriosUI = (() => {
       `;
     }
 
-    html += '</div></main></div>';
-    html += `
-      <style>
-        @media (max-width: 1024px) {
-          #filtersCeasa {
-            width: 280px;
-          }
-        }
-
-        @media (max-width: 768px) {
-          [data-panel="ceasa-container"] {
-            display: flex;
-            flex-direction: column;
-            height: auto;
-          }
-
-          #filtersCeasa {
-            width: 100%;
-            height: auto;
-            position: fixed;
-            top: 0;
-            left: -300px;
-            z-index: 1000;
-            transition: left 0.3s ease;
-            border-radius: 0;
-          }
-
-          #filtersCeasa.active {
-            left: 0;
-            box-shadow: 2px 0 8px rgba(0,0,0,0.2);
-          }
-
-          #btnToggleFiltrosCeasa {
-            display: flex !important;
-          }
-
-          #btnCloseFiltrosCeasa {
-            display: block !important;
-          }
-        }
-      </style>
-    `;
+    html += '</div></div>';
 
     panelBody.innerHTML = html;
     panelBody.parentElement.setAttribute('data-panel', 'ceasa-container');
@@ -1325,7 +1129,10 @@ const relatóriosUI = (() => {
     const panelBody = document.querySelector('.panel-body');
     document.querySelector('.page-title').textContent = 'Relatórios - Funcionários';
     const btnAction = document.getElementById('btnAction');
-    if (btnAction) btnAction.style.display = 'none';
+    if (btnAction) {
+      btnAction.style.display = 'none';
+      btnAction.style.visibility = 'hidden';
+    }
 
     const funcionarios = await FuncionariosManager.getFuncionarios();
     const faltas = await (FaltasManager.getFaltas ? FaltasManager.getFaltas() : []);
@@ -1334,34 +1141,12 @@ const relatóriosUI = (() => {
     const cargosDisponiveis = Array.from(new Set(funcionarios.map(f => f.cargo || '-'))).sort((a,b)=>a.localeCompare(b));
 
     let html = `
-      <div style="display: flex; gap: 16px; height: calc(100vh - 200px);">
-        <!-- PAINEL LATERAL -->
-        <aside id="filtersFuncionarios" style="
-          width: 300px;
-          background: #ffffff;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          padding: 16px;
-          overflow-y: auto;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-          position: relative;
-        ">
-          <button id="btnCloseFiltrosFuncionarios" style="
-            display: none;
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #6b7280;
-          ">✕</button>
-          
-          <h3 style="margin: 0 0 16px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtros</h3>
-          
-          <div style="display: flex; flex-direction: column; gap: 12px;">
-            <div>
+      <div style="width: 100%; height: calc(100vh - 200px);">
+        <!-- FILTROS NO TOPO -->
+        <div style="margin-bottom: 20px; padding: 16px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+          <h3 style="margin: 0 0 12px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtros</h3>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;">
+            <div style="flex: 1; min-width: 150px;">
               <label for="filtroLojaFuncionarios" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Loja</label>
               <select id="filtroLojaFuncionarios" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
                 <option value="__todos__">Todas as lojas</option>
@@ -1369,7 +1154,7 @@ const relatóriosUI = (() => {
                 <option value="SUPER MACHADO">SUPER MACHADO</option>
               </select>
             </div>
-            <div>
+            <div style="flex: 1; min-width: 150px;">
               <label for="filtroCargoFuncionarios" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Cargo</label>
               <select id="filtroCargoFuncionarios" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
                 <option value="__todos__">Todos</option>
@@ -1377,21 +1162,16 @@ const relatóriosUI = (() => {
               </select>
             </div>
           </div>
-          
-          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 16px; border-top: 1px solid #e5e7eb; padding-top: 12px;">
-            <button id="btnAplicarFiltrosFuncionarios" class="btn primary" style="cursor: pointer; width: 100%; padding: 10px;">Aplicar</button>
-            <button id="btnLimparFiltrosFuncionarios" class="btn secondary" style="cursor: pointer; width: 100%; padding: 10px;">Limpar</button>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <button id="btnAplicarFiltrosFuncionarios" class="btn primary" style="cursor: pointer; padding: 10px 20px; background: #3B82F6; color: white; border: none; border-radius: 6px; font-weight: 600;">Aplicar</button>
+            <button id="btnLimparFiltrosFuncionarios" class="btn secondary" style="cursor: pointer; padding: 10px 20px; background: #6B7280; color: white; border: none; border-radius: 6px; font-weight: 600;">Limpar</button>
+            <button id="btnImprimirFuncionarios" class="btn primary" style="cursor: pointer; padding: 10px 20px; background: #059669; color: white; border: none; border-radius: 6px; font-weight: 600;">🖨️ Imprimir</button>
+            <button id="btnExportarFuncionarios" class="btn secondary" style="cursor: pointer; padding: 10px 20px; background: #0891B2; color: white; border: none; border-radius: 6px; font-weight: 600;">📊 Exportar Excel</button>
           </div>
-        </aside>
+        </div>
 
         <!-- ÁREA PRINCIPAL -->
-        <main style="flex: 1; overflow-y: auto;">
-          <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
-            <button id="btnToggleFiltrosFuncionarios" class="btn primary" style="cursor: pointer; display: none;">🔽 Filtros</button>
-            <button id="btnImprimirFuncionarios" class="btn primary" style="cursor: pointer;">🖨️ Imprimir</button>
-            <button id="btnExportarFuncionarios" class="btn secondary" style="cursor: pointer;">📊 Exportar para Excel</button>
-          </div>
-          <div id="relatorioPrintFuncionarios" style="background: white; padding: 20px; border-radius: 8px;">
+        <div id="relatorioPrintFuncionarios" style="background: white; padding: 20px; border-radius: 8px; overflow-y: auto; max-height: calc(100vh - 400px);">
         <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px;">
           <h2 style="margin: 0; color: #111827;">RELATÓRIO DE FUNCIONÁRIOS</h2>
         </div>
@@ -1452,48 +1232,7 @@ const relatóriosUI = (() => {
       `;
     }
 
-    html += '</div></main></div>';
-    html += `
-      <style>
-        @media (max-width: 1024px) {
-          #filtersFuncionarios {
-            width: 280px;
-          }
-        }
-
-        @media (max-width: 768px) {
-          [data-panel="funcionarios-container"] {
-            display: flex;
-            flex-direction: column;
-            height: auto;
-          }
-
-          #filtersFuncionarios {
-            width: 100%;
-            height: auto;
-            position: fixed;
-            top: 0;
-            left: -300px;
-            z-index: 1000;
-            transition: left 0.3s ease;
-            border-radius: 0;
-          }
-
-          #filtersFuncionarios.active {
-            left: 0;
-            box-shadow: 2px 0 8px rgba(0,0,0,0.2);
-          }
-
-          #btnToggleFiltrosFuncionarios {
-            display: flex !important;
-          }
-
-          #btnCloseFiltrosFuncionarios {
-            display: block !important;
-          }
-        }
-      </style>
-    `;
+    html += '</div></div>';
 
     panelBody.innerHTML = html;
     panelBody.parentElement.setAttribute('data-panel', 'funcionarios-container');

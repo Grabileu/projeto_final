@@ -131,13 +131,18 @@ const FuncionariosUI = (() => {
 
     // Filtro por loja
     let html = `
-      <div style="margin-bottom: 16px; display: flex; gap: 8px; align-items: center;">
-        <label for="filtroLoja" style="font-weight: 600;">Filtrar por loja:</label>
-        <select id="filtroLoja" style="padding: 6px 12px; border: 1px solid #d1d5db; border-radius: 6px;">
-          <option value="">Todas as lojas</option>
-          <option value="AREA VERDE">AREA VERDE</option>
-          <option value="SUPER MACHADO">SUPER MACHADO</option>
-        </select>
+      <div style="margin-bottom: 20px; padding: 16px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <h3 style="margin: 0 0 12px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtros</h3>
+        <div style="display: flex; gap: 12px; align-items: flex-end;">
+          <div style="flex: 1; max-width: 300px;">
+            <label for="filtroLoja" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Loja</label>
+            <select id="filtroLoja" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
+              <option value="">Todas as lojas</option>
+              <option value="AREA VERDE">AREA VERDE</option>
+              <option value="SUPER MACHADO">SUPER MACHADO</option>
+            </select>
+          </div>
+        </div>
       </div>
     `;
     

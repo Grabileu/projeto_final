@@ -166,34 +166,13 @@ const ceasaUI = (() => {
     });
 
     return `
-      <div style="display: flex; gap: 16px; height: calc(100vh - 200px);">
-        <!-- PAINEL LATERAL -->
-        <aside id="filtersCeasa" style="
-          width: 300px;
-          background: #ffffff;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          padding: 16px;
-          overflow-y: auto;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-          position: relative;
-        ">
-          <button id="btnCloseFiltrosCeasa" style="
-            display: none;
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #6b7280;
-          ">✕</button>
+      <div style="width: 100%; height: calc(100vh - 200px);">
+        <!-- Filtros no topo -->
+        <div style="margin-bottom: 20px; padding: 16px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+          <h3 style="margin: 0 0 12px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtrar por período</h3>
           
-          <h3 style="margin: 0 0 16px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtrar por período</h3>
-          
-          <div style="display: flex; flex-direction: column; gap: 12px;">
-            <div>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 150px;">
               <label for="filtroLoja" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Loja</label>
               <select id="filtroLoja" class="filtro-select" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
                 <option value="">Todas as lojas</option>
@@ -201,95 +180,27 @@ const ceasaUI = (() => {
                 <option value="SUPER MACHADO">SUPER MACHADO</option>
               </select>
             </div>
-            <div>
+            <div style="flex: 1; min-width: 150px;">
               <label for="filtroMes" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Mês</label>
               <select id="filtroMes" class="filtro-select" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
                 ${mesesOptions}
               </select>
             </div>
-            <div>
+            <div style="flex: 1; min-width: 150px;">
               <label for="filtroAno" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Ano</label>
               <select id="filtroAno" class="filtro-select" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
                 ${anosOptions}
               </select>
             </div>
+            <div style="display: flex; align-items: flex-end;">
+              <button id="btnAplicarFiltro" class="btn btn-filtro" style="cursor: pointer; padding: 10px 20px; background: #3B82F6; color: white; border: none; border-radius: 6px; font-weight: 600;">Aplicar</button>
+            </div>
           </div>
-          
-          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 16px; border-top: 1px solid #e5e7eb; padding-top: 12px;">
-            <button id="btnAplicarFiltro" class="btn btn-filtro" style="cursor: pointer; width: 100%; padding: 10px; background: #3B82F6; color: white; border: none; border-radius: 6px; font-weight: 600;">Aplicar</button>
-          </div>
-        </aside>
+        </div>
         
         <!-- CONTEÚDO PRINCIPAL -->
-        <div id="ceasaContent" style="flex: 1; overflow-y: auto; width: 100%;">
-
-        <!-- ÁREA PRINCIPAL -->
-        <button id="btnToggleFiltrosCeasa" class="btn btn-filtro" style="cursor: pointer; display: none; background: #3B82F6; color: white; border: none; border-radius: 6px; padding: 8px 12px; font-weight: 600;">🔽 Filtros</button>
+        <div id="ceasaContent" style="width: 100%; overflow-y: auto;"></div>
       </div>
-      
-      <div style="display: flex; gap: 16px; height: calc(100vh - 200px);">
-        <!-- PAINEL LATERAL -->
-        <aside id="filtersCeasa" style="
-          width: 300px;
-          background: #ffffff;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          padding: 16px;
-          overflow-y: auto;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-          position: relative;
-        ">
-
-      <style>
-        /* Layout base: filtros à esquerda ocupando largura consistente */
-        [data-panel="ceasa-container"]{
-          display:flex;
-          gap:16px;
-          align-items:flex-start;
-          justify-content:flex-start;
-          width:100%;
-        }
-
-        @media (max-width: 1024px) {
-          #filtersCeasa {
-            width: 280px;
-          }
-          [data-panel="ceasa-container"]{gap:12px;}
-        }
-
-        @media (max-width: 768px) {
-          [data-panel="ceasa-container"] {
-            display: flex;
-            flex-direction: column;
-            height: auto;
-            gap:12px;
-          }
-
-          #filtersCeasa {
-            width: 100%;
-            height: auto;
-            position: fixed;
-            top: 0;
-            left: -300px;
-            z-index: 1000;
-            transition: left 0.3s ease;
-            border-radius: 0;
-          }
-
-          #filtersCeasa.active {
-            left: 0;
-            box-shadow: 2px 0 8px rgba(0,0,0,0.2);
-          }
-
-          #btnToggleFiltrosCeasa {
-            display: flex !important;
-          }
-
-          #btnCloseFiltrosCeasa {
-            display: block !important;
-          }
-        }
-      </style>
     `;
   };
 
@@ -505,7 +416,6 @@ const ceasaUI = (() => {
 
     // Anexar os event listeners
     attachFiltroEvents();
-    attachToggleFilterEvents();
     attachEditarExcluirEvents();
   };
 
