@@ -664,10 +664,24 @@ const FaltasUI = (() => {
                 <option value="atestado">Atestado</option>
               </select>
             </div>
-            <div class="form-group">
+            <div class="form-group" id="dataFaltaGroup">
               <label for="data">Data *</label>
               <input type="date" id="data" name="data" required />
             </div>
+            <div class="form-group" id="dataInicioGroup" style="display: none;">
+              <label for="dataInicio">Data Início *</label>
+              <input type="date" id="dataInicio" name="dataInicio" />
+            </div>
+            <div class="form-group" id="dataFimGroup" style="display: none;">
+              <label for="dataFim">Data Fim *</label>
+              <input type="date" id="dataFim" name="dataFim" />
+            </div>
+          </div>
+          
+          <div id="periodoInfo" style="display: none; background: #eff6ff; border: 1px solid #3b82f6; border-radius: 6px; padding: 12px; margin-bottom: 16px;">
+            <p style="margin: 0; color: #1e40af; font-size: 0.9rem;">
+              ℹ️ <strong>Atenção:</strong> Será criado um registro de atestado para cada dia do período informado.
+            </p>
           </div>
 
           <div class="form-row form-row-checkbox" id="justificadaRow">
@@ -701,12 +715,39 @@ const FaltasUI = (() => {
       const justificadaCheckbox = document.getElementById('justificada');
       const justificativaField = document.getElementById('justificativaField');
       
+      // Campos de data
+      const dataFaltaGroup = document.getElementById('dataFaltaGroup');
+      const dataInicioGroup = document.getElementById('dataInicioGroup');
+      const dataFimGroup = document.getElementById('dataFimGroup');
+      const periodoInfo = document.getElementById('periodoInfo');
+      const dataInput = document.getElementById('data');
+      const dataInicioInput = document.getElementById('dataInicio');
+      const dataFimInput = document.getElementById('dataFim');
+      
       if (isAtestado) {
+        // Atestado: mostrar período (data início e fim)
+        dataFaltaGroup.style.display = 'none';
+        dataInicioGroup.style.display = 'block';
+        dataFimGroup.style.display = 'block';
+        periodoInfo.style.display = 'block';
+        dataInput.required = false;
+        dataInicioInput.required = true;
+        dataFimInput.required = true;
+        
         // Atestado não precisa justificar - ocultar campos
         justificadaRow.style.display = 'none';
         justificativaField.style.display = 'none';
         justificadaCheckbox.checked = true; // Sempre marcado para atestados
       } else {
+        // Falta: mostrar apenas uma data
+        dataFaltaGroup.style.display = 'block';
+        dataInicioGroup.style.display = 'none';
+        dataFimGroup.style.display = 'none';
+        periodoInfo.style.display = 'none';
+        dataInput.required = true;
+        dataInicioInput.required = false;
+        dataFimInput.required = false;
+        
         // Falta pode precisar justificar - mostrar checkbox
         justificadaRow.style.display = 'flex';
         justificadaCheckbox.checked = false;
@@ -722,17 +763,53 @@ const FaltasUI = (() => {
       e.preventDefault();
       const funcionarioValue = document.getElementById('funcionario').value;
       const tipo = document.getElementById('tipo').value;
-      const data = document.getElementById('data').value;
       const justificada = document.getElementById('justificada').checked;
       const justificativa = document.getElementById('justificativa').value.trim();
 
-      if (!funcionarioValue || !tipo || !data) {
+      if (!funcionarioValue || !tipo) {
         alert('Todos os campos obrigatórios devem ser preenchidos!');
         return;
       }
 
       const [funcionarioId, funcionarioNome] = funcionarioValue.split('|');
-      await FaltasManager.addFalta(funcionarioId, funcionarioNome, tipo, data, justificada, justificativa);
+      
+      if (tipo === 'atestado') {
+        // Atestado: usar período
+        const dataInicio = document.getElementById('dataInicio').value;
+        const dataFim = document.getElementById('dataFim').value;
+        
+        if (!dataInicio || !dataFim) {
+          alert('Preencha a data de início e fim do atestado!');
+          return;
+        }
+        
+        // Validar que data fim é maior ou igual a data início
+        if (new Date(dataFim) < new Date(dataInicio)) {
+          alert('A data de fim deve ser igual ou posterior à data de início!');
+          return;
+        }
+        
+        // Criar um registro para cada dia do período
+        const inicio = new Date(dataInicio);
+        const fim = new Date(dataFim);
+        
+        while (inicio <= fim) {
+          const dataAtual = inicio.toISOString().split('T')[0];
+          await FaltasManager.addFalta(funcionarioId, funcionarioNome, tipo, dataAtual, true, `Atestado de ${formatarData(dataInicio)} até ${formatarData(dataFim)}`);
+          inicio.setDate(inicio.getDate() + 1);
+        }
+      } else {
+        // Falta: usar data única
+        const data = document.getElementById('data').value;
+        
+        if (!data) {
+          alert('Preencha a data da falta!');
+          return;
+        }
+        
+        await FaltasManager.addFalta(funcionarioId, funcionarioNome, tipo, data, justificada, justificativa);
+      }
+      
       backToList();
     });
 

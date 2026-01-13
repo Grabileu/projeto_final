@@ -111,7 +111,7 @@
       </nav>
 
       <div class="sidebar-footer">
-        <button class="btn-settings" id="btnSettings" title="Configurações do servidor" aria-label="Configurações">⚙️</button>
+        <button class="btn-settings" id="btnSettings" title="Configurações" aria-label="Configurações">⚙️</button>
         <small class="version">v1.0</small>
       </div>
     </aside>
@@ -219,11 +219,16 @@
   <script src="ceasa.js"></script>
   <script src="fornecedores.js"></script>
   <script src="relatorios.js"></script>
+  <script src="configuracoes.js"></script>
   <script src="dashboard.js"></script>
 
   <!-- Exemplos e Integração -->
   <script src="EXEMPLOS_INTEGRACAO.js"></script>
   <script>
+    console.log('🔍 Verificando módulos carregados:');
+    console.log('- ConfiguracoesUI:', typeof ConfiguracoesUI !== 'undefined' ? '✅' : '❌');
+    console.log('- window.ConfiguracoesUI:', typeof window.ConfiguracoesUI !== 'undefined' ? '✅' : '❌');
+    
     (async function () {
       const toggle = document.querySelector('.menu-toggle');
       toggle.addEventListener('click', () => {
@@ -315,6 +320,9 @@
             } else if (currentSection === 'ceasa-fornecedores') {
               console.log('➡️ Chamando fornecedoresUI.showAddFornecedorPage');
               await fornecedoresUI.showAddFornecedorPage();
+            } else if (currentSection === 'configuracoes') {
+              console.log('➡️ Configurações - renderizando');
+              ConfiguracoesUI.init();
             } else if (currentSection.startsWith('relatorios-')) {
               console.log('➡️ Relatórios - escondendo botão');
               document.getElementById('btnAction').style.display = 'none';
@@ -512,6 +520,42 @@
         });
         observer.observe(panelHeader, { childList: true, subtree: true });
       }
+      
+      // Evento do botão de configurações
+      const btnSettings = document.getElementById('btnSettings');
+      if (btnSettings) {
+        btnSettings.addEventListener('click', async () => {
+          console.log('⚙️ Botão de configurações clicado');
+          console.log('🔍 window.ConfiguracoesUI:', window.ConfiguracoesUI);
+          
+          // Remover active de todos os itens do menu
+          document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
+          });
+          
+          // Atualizar título e seção
+          currentSection = 'configuracoes';
+          setPanelTitle('Configurações do Sistema');
+          
+          // Ocultar botão adicionar
+          const btnAction = document.getElementById('btnAction');
+          if (btnAction) btnAction.style.display = 'none';
+          
+          // Renderizar configurações
+          try {
+            if (typeof ConfiguracoesUI !== 'undefined') {
+              ConfiguracoesUI.init();
+            } else if (window.ConfiguracoesUI) {
+              window.ConfiguracoesUI.init();
+            } else {
+              console.error('❌ ConfiguracoesUI não encontrado');
+              alert('Erro: Módulo de configurações não carregado. Recarregue a página.');
+            }
+          } catch (error) {
+            console.error('❌ Erro ao inicializar configurações:', error);
+          }
+        });
+      }
     })();
   </script>
   <script>
@@ -635,7 +679,6 @@
       }
 
       // Event Listeners
-      btnSettings.addEventListener('click', openModal);
       btnCloseModal.addEventListener('click', closeModal);
       modalClose.addEventListener('click', closeModal);
       overlay.addEventListener('click', closeModal);
