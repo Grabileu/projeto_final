@@ -365,6 +365,7 @@ const ceasaUI = (() => {
           <div class="ceasa-info">
             <span class="ceasa-produto" style="font-weight: 600;">${compra.produto}</span>
             <div class="ceasa-badges" style="margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap;">
+              ${compra.loja ? `<span class="badge" style="background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">🏪 ${compra.loja}</span>` : ''}
               <span class="badge" style="background: #dbeafe; color: #0c4a6e; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">Qtd: ${compra.quantidade} ${compra.unidade}</span>
               <span class="badge" style="background: #fce7f3; color: #831843; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">Caixas: ${compra.caixas}</span>
               <span class="badge" style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">Tipo: ${compra.tipo === 'unidade' ? 'Unidade' : 'Caixa'}</span>
