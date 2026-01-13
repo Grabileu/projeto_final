@@ -356,35 +356,62 @@ const ceasaUI = (() => {
       </div>
     `;
 
-    html += '<div class="ceasa-list"><ul>';
-    comprasFiltradasProdutos.forEach((compra, idx) => {
-      const valorTotal = parseFloat(compra.valor) * compra.caixas;
-      const custoProduto = compra.tipo === 'unidade' ? compra.valor : (compra.quantidade > 0 ? compra.valor / compra.quantidade : 0);
-      html += `
-        <li class="ceasa-item">
-          <div class="ceasa-info">
-            <span class="ceasa-produto" style="font-weight: 600;">${compra.produto}</span>
-            <div class="ceasa-badges" style="margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap;">
-              ${compra.loja ? `<span class="badge" style="background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">🏪 ${compra.loja}</span>` : ''}
-              <span class="badge" style="background: #dbeafe; color: #0c4a6e; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">Qtd: ${compra.quantidade} ${compra.unidade}</span>
-              <span class="badge" style="background: #fce7f3; color: #831843; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">Caixas: ${compra.caixas}</span>
-              <span class="badge" style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">Tipo: ${compra.tipo === 'unidade' ? 'Unidade' : 'Caixa'}</span>
-            </div>
-          </div>
-          <div style="margin: 12px 0; font-size: 0.9rem; color: #6b7280;">
-            <div>Valor/Caixa: ${formatarMoeda(compra.valor)}</div>
-            <div style="margin-top: 4px;">Custo/Produto: <strong>${formatarMoeda(custoProduto)}</strong></div>
-            <div style="margin-top: 4px;">Valor Total: <strong style="color: #059669;">${formatarMoeda(valorTotal)}</strong></div>
-          </div>
-          <div class="ceasa-actions">
-            <button class="btn-edit-ceasa" data-id="${compra.id}" title="Editar">✏️</button>
-            <button class="btn-delete-ceasa" data-id="${compra.id}" title="Excluir">🗑️</button>
-          </div>
-        </li>
-      `;
+    // Agrupar produtos por loja
+    const produtosPorLoja = {};
+    comprasFiltradasProdutos.forEach(compra => {
+      const loja = compra.loja || 'Sem loja definida';
+      if (!produtosPorLoja[loja]) {
+        produtosPorLoja[loja] = [];
+      }
+      produtosPorLoja[loja].push(compra);
     });
 
-    html += '</ul></div>';
+    html += '<div class="ceasa-list">';
+    
+    // Renderizar cada loja separadamente
+    Object.keys(produtosPorLoja).sort().forEach(loja => {
+      const comprasLoja = produtosPorLoja[loja];
+      const totalLoja = comprasLoja.reduce((sum, c) => sum + (parseFloat(c.valor) * c.caixas), 0);
+      
+      html += `
+        <div style="margin-bottom: 24px; padding: 16px; background: #f9fafb; border-radius: 8px; border: 2px solid #e5e7eb;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #d1d5db;">
+            <h3 style="margin: 0; font-size: 1.1rem; color: #111827;">🏪 ${loja}</h3>
+            <span style="font-weight: 700; color: #059669; font-size: 1.1rem;">${formatarMoeda(totalLoja)}</span>
+          </div>
+          <ul>
+      `;
+      
+      comprasLoja.forEach((compra, idx) => {
+        const valorTotal = parseFloat(compra.valor) * compra.caixas;
+        const custoProduto = compra.tipo === 'unidade' ? compra.valor : (compra.quantidade > 0 ? compra.valor / compra.quantidade : 0);
+        html += `
+          <li class="ceasa-item">
+            <div class="ceasa-info">
+              <span class="ceasa-produto" style="font-weight: 600;">${compra.produto}</span>
+              <div class="ceasa-badges" style="margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap;">
+                <span class="badge" style="background: #dbeafe; color: #0c4a6e; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">Qtd: ${compra.quantidade} ${compra.unidade}</span>
+                <span class="badge" style="background: #fce7f3; color: #831843; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">Caixas: ${compra.caixas}</span>
+                <span class="badge" style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">Tipo: ${compra.tipo === 'unidade' ? 'Unidade' : 'Caixa'}</span>
+              </div>
+            </div>
+            <div style="margin: 12px 0; font-size: 0.9rem; color: #6b7280;">
+              <div>Valor/Caixa: ${formatarMoeda(compra.valor)}</div>
+              <div style="margin-top: 4px;">Custo/Produto: <strong>${formatarMoeda(custoProduto)}</strong></div>
+              <div style="margin-top: 4px;">Valor Total: <strong style="color: #059669;">${formatarMoeda(valorTotal)}</strong></div>
+            </div>
+            <div class="ceasa-actions">
+              <button class="btn-edit-ceasa" data-id="${compra.id}" title="Editar">✏️</button>
+              <button class="btn-delete-ceasa" data-id="${compra.id}" title="Excluir">🗑️</button>
+            </div>
+          </li>
+        `;
+      });
+      
+      html += '</ul></div>';
+    });
+
+    html += '</div>';
     ceasaContent.innerHTML = html;
 
     document.getElementById('btnVoltar').addEventListener('click', async () => await renderFornecedores());
