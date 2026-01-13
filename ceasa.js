@@ -219,15 +219,26 @@ const ceasaUI = (() => {
             <button id="btnAplicarFiltro" class="btn btn-filtro" style="cursor: pointer; width: 100%; padding: 10px; background: #3B82F6; color: white; border: none; border-radius: 6px; font-weight: 600;">Aplicar</button>
           </div>
         </aside>
+        
+        <!-- CONTEÚDO PRINCIPAL -->
+        <div id="ceasaContent" style="flex: 1; overflow-y: auto; width: 100%;">
 
         <!-- ÁREA PRINCIPAL -->
-        <main style="flex: 1; overflow-y: auto;">
-          <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
-            <button id="btnToggleFiltrosCeasa" class="btn btn-filtro" style="cursor: pointer; display: none; background: #3B82F6; color: white; border: none; border-radius: 6px; padding: 8px 12px; font-weight: 600;">🔽 Filtros</button>
-          </div>
-          <div id="ceasaContent"></div>
-        </main>
+        <button id="btnToggleFiltrosCeasa" class="btn btn-filtro" style="cursor: pointer; display: none; background: #3B82F6; color: white; border: none; border-radius: 6px; padding: 8px 12px; font-weight: 600;">🔽 Filtros</button>
       </div>
+      
+      <div style="display: flex; gap: 16px; height: calc(100vh - 200px);">
+        <!-- PAINEL LATERAL -->
+        <aside id="filtersCeasa" style="
+          width: 300px;
+          background: #ffffff;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          padding: 16px;
+          overflow-y: auto;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          position: relative;
+        ">
 
       <style>
         /* Layout base: filtros à esquerda ocupando largura consistente */
@@ -314,14 +325,14 @@ const ceasaUI = (() => {
       const totalDia = comprasDia.reduce((sum, c) => sum + (parseFloat(c.valor) * c.caixas), 0);
       const diaFormatado = formatarData(dia);
       html += `
-        <li class="ceasa-dia" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 8px; transition: all 0.2s;" data-dia="${dia}">
+        <li class="ceasa-dia" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 20px; background: #fff; border: 2px solid #e5e7eb; border-radius: 8px; margin-bottom: 12px; transition: all 0.2s; min-height: 80px;" data-dia="${dia}">
           <div>
-            <div style="font-weight: 600; font-size: 1.1rem; color: #111827;">${diaFormatado}</div>
-            <div style="font-size: 0.9rem; color: #6b7280; margin-top: 4px;">${comprasDia.length} compra(s)</div>
+            <div style="font-weight: 600; font-size: 1.2rem; color: #111827;">${diaFormatado}</div>
+            <div style="font-size: 1rem; color: #6b7280; margin-top: 6px;">${comprasDia.length} compra(s)</div>
           </div>
           <div style="text-align: right;">
-            <div style="font-size: 1.2rem; font-weight: 700; color: #059669;">${formatarMoeda(totalDia)}</div>
-            <div style="font-size: 0.8rem; color: #9ca3af; margin-top: 2px;">→</div>
+            <div style="font-size: 1.3rem; font-weight: 700; color: #059669;">${formatarMoeda(totalDia)}</div>
+            <div style="font-size: 1rem; color: #9ca3af; margin-top: 4px;">→</div>
           </div>
         </li>
       `;
@@ -345,13 +356,22 @@ const ceasaUI = (() => {
     const comprasFiltradasDia = compras.filter(c => c.data === diaSelected);
     const ceasaContent = document.getElementById('ceasaContent');
 
+    // Buscar fornecedores do banco
+    const { data: fornecedoresBD } = await window.supabaseClient
+      .from('fornecedores')
+      .select('*');
+    const fornecedoresMapBD = {};
+    (fornecedoresBD || []).forEach(f => {
+      fornecedoresMapBD[f.id] = f.nome;
+    });
+
     const fornecedoresMap = {};
     comprasFiltradasDia.forEach(c => {
       const fid = c.fornecedor_id || c.fornecedorId || 'sem-fornecedor';
       if (!fornecedoresMap[fid]) {
         fornecedoresMap[fid] = {
           id: fid,
-          nome: c.descricao ? c.descricao.match(/\[Fornecedor: (.+?)\]/)?.[1] || 'Sem fornecedor' : 'Sem fornecedor',
+          nome: fid !== 'sem-fornecedor' ? (fornecedoresMapBD[fid] || 'Fornecedor não encontrado') : 'Sem fornecedor',
           compras: []
         };
       }
@@ -372,14 +392,14 @@ const ceasaUI = (() => {
     fornecedores.forEach((forn, idx) => {
       const totalFornecedor = forn.compras.reduce((sum, c) => sum + (parseFloat(c.valor) * c.caixas), 0);
       html += `
-        <li class="ceasa-fornecedor" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 8px; transition: all 0.2s;" data-idx="${idx}">
+        <li class="ceasa-fornecedor" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 20px; background: #fff; border: 2px solid #e5e7eb; border-radius: 8px; margin-bottom: 12px; transition: all 0.2s; min-height: 80px;" data-idx="${idx}">
           <div>
-            <div style="font-weight: 600; font-size: 1rem; color: #111827;">${forn.nome}</div>
-            <div style="font-size: 0.9rem; color: #6b7280; margin-top: 4px;">${forn.compras.length} produto(s)</div>
+            <div style="font-weight: 600; font-size: 1.2rem; color: #111827;">${forn.nome}</div>
+            <div style="font-size: 1rem; color: #6b7280; margin-top: 6px;">${forn.compras.length} produto(s)</div>
           </div>
           <div style="text-align: right;">
-            <div style="font-size: 1.1rem; font-weight: 700; color: #059669;">${formatarMoeda(totalFornecedor)}</div>
-            <div style="font-size: 0.8rem; color: #9ca3af; margin-top: 2px;">→</div>
+            <div style="font-size: 1.3rem; font-weight: 700; color: #059669;">${formatarMoeda(totalFornecedor)}</div>
+            <div style="font-size: 1rem; color: #9ca3af; margin-top: 4px;">→</div>
           </div>
         </li>
       `;
@@ -405,7 +425,17 @@ const ceasaUI = (() => {
     const comprasFiltradasProdutos = compras.filter(c => c.data === diaSelected && (c.fornecedor_id || c.fornecedorId || 'sem-fornecedor') === fornecedorSelected);
     const ceasaContent = document.getElementById('ceasaContent');
     const diaFormatado = formatarData(diaSelected);
-    const fornecedorNome = comprasFiltradasProdutos[0]?.descricao?.match(/\[Fornecedor: (.+?)\]/)?.[1] || 'Sem fornecedor';
+    
+    // Buscar nome do fornecedor do banco
+    let fornecedorNome = 'Sem fornecedor';
+    if (fornecedorSelected && fornecedorSelected !== 'sem-fornecedor') {
+      const { data: fornecedor } = await window.supabaseClient
+        .from('fornecedores')
+        .select('nome')
+        .eq('id', fornecedorSelected)
+        .single();
+      fornecedorNome = fornecedor?.nome || 'Fornecedor não encontrado';
+    }
 
     let html = `
       <div style="margin-bottom: 16px;">
@@ -553,10 +583,13 @@ const ceasaUI = (() => {
     if (h2) h2.style.display = 'none';
 
     // Obter fornecedores do Supabase
-    const fornecedores = [];
+    const { data: fornecedores } = await window.supabaseClient
+      .from('fornecedores')
+      .select('*')
+      .order('nome', { ascending: true });
 
     let fornecedoresOptions = '<option value="">Selecione fornecedor</option>';
-    fornecedores.forEach(f => {
+    (fornecedores || []).forEach(f => {
       fornecedoresOptions += `<option value="${f.id}">${f.nome}</option>`;
     });
 
@@ -733,8 +766,12 @@ const ceasaUI = (() => {
       }
 
       // Abrir modal para selecionar produto
-      const fornecedor = fornecedores.find(f => f.id === fornecedorId);
+      console.log('🔍 Procurando fornecedor:', fornecedorId, 'Tipo:', typeof fornecedorId);
+      console.log('📦 Fornecedores disponíveis:', fornecedores);
+      const fornecedor = fornecedores.find(f => f.id == fornecedorId); // Comparação flexível
+      console.log('✅ Fornecedor encontrado:', fornecedor);
       if (!fornecedor || !fornecedor.produtos || fornecedor.produtos.length === 0) {
+        console.log('❌ Produtos do fornecedor:', fornecedor?.produtos);
         alert('Este fornecedor não tem produtos cadastrados!');
         return;
       }
@@ -921,13 +958,16 @@ const ceasaUI = (() => {
     if (h2) h2.style.display = 'none';
 
     // Carrega fornecedores do Supabase
-    let fornecedores = [];
+    const { data: fornecedores } = await window.supabaseClient
+      .from('fornecedores')
+      .select('*')
+      .order('nome', { ascending: true });
 
     // Data atual em formato YYYY-MM-DD
     const dataCompra = compra.data || new Date().toISOString().split('T')[0];
 
     let fornecedoresOptions = '<option value="">Selecione fornecedor</option>';
-    fornecedores.forEach(f => {
+    (fornecedores || []).forEach(f => {
       const sel = compra.fornecedor_id === f.id ? 'selected' : '';
       fornecedoresOptions += `<option value="${f.id}" ${sel}>${f.nome}</option>`;
     });

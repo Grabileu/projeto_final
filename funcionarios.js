@@ -56,11 +56,15 @@ const FuncionariosManager = (() => {
       .single();
 
     if (error) {
-      console.error('Erro ao atualizar funcionário:', error);
-      alert('Erro ao atualizar funcionário no banco de dados');
+      console.error('❌ Erro ao atualizar funcionário:', error);
+      console.error('Mensagem:', error.message);
+      console.error('Detalhes:', error.details);
+      console.error('Hint:', error.hint);
+      alert('Erro ao atualizar funcionário: ' + error.message);
       return null;
     }
 
+    console.log('✅ Funcionário atualizado:', data);
     return data;
   };
 

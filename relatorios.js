@@ -922,7 +922,7 @@ const relatóriosUI = (() => {
     const fornecedores = await FornecedoresManager.getFornecedores();
     
     const nomesFornecedores = Array.from(new Set(compras.map(c => {
-      const forn = fornecedores.find(f => f.id === c.fornecedor_id || f.id === c.fornecedorId);
+      const forn = fornecedores.find(f => f.id == c.fornecedor_id);
       return forn ? forn.nome : 'Sem fornecedor';
     }))).sort((a,b)=>a.localeCompare(b));
 
@@ -1021,7 +1021,7 @@ const relatóriosUI = (() => {
         const fornecedoresMap = {};
         comprasDia.forEach(c => {
           const fid = c.fornecedor_id || 'sem-fornecedor';
-          const fornObj = fornecedores.find(f => f.id === c.fornecedor_id);
+          const fornObj = fornecedores.find(f => f.id == c.fornecedor_id);
           const nome = fornObj ? fornObj.nome : 'Sem fornecedor';
           if (!fornecedoresMap[fid]) fornecedoresMap[fid] = { nome, itens: [] };
           fornecedoresMap[fid].itens.push(c);
@@ -1157,7 +1157,7 @@ const relatóriosUI = (() => {
         const fornecedoresMap = {};
         comprasDia.forEach(c => {
           const fid = c.fornecedor_id || 'sem-fornecedor';
-          const fornObj = fornecedores.find(f => f.id === c.fornecedor_id);
+          const fornObj = fornecedores.find(f => f.id == c.fornecedor_id);
           const nome = fornObj ? fornObj.nome : 'Sem fornecedor';
           if (!fornecedoresMap[fid]) fornecedoresMap[fid] = { nome, itens: [] };
           fornecedoresMap[fid].itens.push(c);
@@ -1223,7 +1223,7 @@ const relatóriosUI = (() => {
       
       const filtrados = compras.filter(c => {
         const dataOK = (!inicio || c.data >= inicio) && (!fim || c.data <= fim);
-        const fornObj = fornecedores.find(f => f.id === c.fornecedor_id);
+        const fornObj = fornecedores.find(f => f.id == c.fornecedor_id);
         const fornecedorNome = fornObj ? fornObj.nome : 'Sem fornecedor';
         const fornOK = (fornSel === '__todos__' || fornecedorNome === fornSel);
         
@@ -1291,7 +1291,7 @@ const relatóriosUI = (() => {
     document.getElementById('btnExportarCeasa').addEventListener('click', () => {
       let csv = 'Data,Fornecedor,Produto,Quantidade,Unidade,Caixas,Valor Total (R$)\n';
       compras.forEach(c => {
-        const fornecedor = fornecedores.find(f => f.id === c.fornecedor_id);
+        const fornecedor = fornecedores.find(f => f.id == c.fornecedor_id);
         const fornecedorNome = fornecedor ? fornecedor.nome : 'Sem fornecedor';
         const valorTotal = (parseFloat(c.valor) || 0) * (c.caixas || 0);
         csv += `"${formatarData(c.data)}","${fornecedorNome}","${c.produto}","${c.quantidade}","${c.unidade}",${c.caixas},"${valorTotal.toFixed(2)}"\n`;

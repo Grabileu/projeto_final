@@ -1,0 +1,54 @@
+// SUBSTITUA a função addFornecedor em fornecedores.js por esta:
+
+  const addFornecedor = async (nome, contato, email, endereco, produtos) => {
+    const novoFornecedor = {
+      nome,
+      contato,
+      email,
+      endereco,
+      produtos: produtos && produtos.length > 0 ? produtos : null
+    };
+
+    console.log('📝 Tentando salvar fornecedor:', novoFornecedor);
+
+    const { data, error } = await window.supabaseClient
+      .from('fornecedores')
+      .insert([novoFornecedor])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Erro ao adicionar fornecedor:', error);
+      console.error('Detalhes do erro:', error.message, error.details, error.hint);
+      alert('Erro ao salvar fornecedor: ' + error.message);
+      return null;
+    }
+
+    console.log('✅ Fornecedor salvo com sucesso:', data);
+    return data;
+  };
+
+// SUBSTITUA a função updateFornecedor em fornecedores.js por esta:
+
+  const updateFornecedor = async (id, nome, contato, email, endereco, produtos) => {
+    const { data, error } = await window.supabaseClient
+      .from('fornecedores')
+      .update({
+        nome,
+        contato,
+        email,
+        endereco,
+        produtos: produtos && produtos.length > 0 ? produtos : null
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Erro ao atualizar fornecedor:', error);
+      alert('Erro ao atualizar fornecedor no banco de dados');
+      return null;
+    }
+
+    return data;
+  };

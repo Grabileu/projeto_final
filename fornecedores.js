@@ -28,7 +28,8 @@ const FornecedoresManager = (() => {
       nome,
       contato,
       email,
-      endereco
+      endereco,
+      produtos: produtos && produtos.length > 0 ? produtos : null
     };
 
     console.log('📝 Tentando salvar fornecedor:', novoFornecedor);
@@ -57,7 +58,8 @@ const FornecedoresManager = (() => {
         nome,
         contato,
         email,
-        endereco
+        endereco,
+        produtos: produtos && produtos.length > 0 ? produtos : null
       })
       .eq('id', id)
       .select()
