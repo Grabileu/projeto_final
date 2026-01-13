@@ -994,6 +994,7 @@ const relatóriosUI = (() => {
             <thead>
               <tr style="background: #f3f4f6; border-top: 1px solid #e5e7eb; border-bottom: 2px solid #d1d5db;">
                 <th style="padding: 10px; text-align: left; font-weight: 600; color: #111827;">Produto</th>
+                <th style="padding: 10px; text-align: center; font-weight: 600; color: #111827;">Loja</th>
                 <th style="padding: 10px; text-align: center; font-weight: 600; color: #111827;">Quantidade</th>
                 <th style="padding: 10px; text-align: center; font-weight: 600; color: #111827;">Caixas</th>
                 <th style="padding: 10px; text-align: center; font-weight: 600; color: #111827;">Tipo</th>
@@ -1008,6 +1009,7 @@ const relatóriosUI = (() => {
             inner += `
               <tr style="border-bottom: 1px solid #e5e7eb;">
                 <td style="padding: 10px; color: #111827; font-weight: 500;">${c.produto}</td>
+                <td style="padding: 10px; text-align: center; color: #059669; font-weight: 600;">${c.loja || '-'}</td>
                 <td style="padding: 10px; text-align: center; color: #6b7280;">${c.quantidade} ${c.unidade}</td>
                 <td style="padding: 10px; text-align: center; color: #6b7280;">${c.caixas}</td>
                 <td style="padding: 10px; text-align: center; color: #6b7280;">${c.tipo === 'unidade' ? 'Unidade' : 'Caixa'}</td>
