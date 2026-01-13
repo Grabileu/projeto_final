@@ -333,6 +333,8 @@
           if (actionsDiv) {
             actionsDiv.style.display = 'block';
           }
+          // Garantir que a visibilidade volte após relatórios
+          btn.style.visibility = 'visible';
           
           // Mostrar o h2 se estava escondido
           const h2 = document.querySelector('.panel-header h2');
@@ -416,6 +418,7 @@
               newBtn.className = 'btn primary';
               newBtn.textContent = 'Adicionar';
               newBtn.style.display = 'block';
+              newBtn.style.visibility = 'visible';
               actions.innerHTML = '';
               actions.appendChild(newBtn);
               // Reattach event listener

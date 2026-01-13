@@ -51,6 +51,12 @@ body{
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
   line-height:1.45;
+  text-transform: uppercase;
+}
+
+/* Normalizar texto em alguns elementos */
+code, pre{
+  text-transform: none;
 }
 
 /* App layout */
@@ -482,6 +488,7 @@ body{
   font-size:0.95rem;
   transition:all .2s ease;
   background:var(--card);
+  text-transform: uppercase;
 }
 .form-group input:focus,
 .form-group select:focus,
