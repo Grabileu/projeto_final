@@ -35,7 +35,7 @@ const quebrasManager = (() => {
     if (error) {
       console.error('Erro ao adicionar quebra:', error);
       console.error('Detalhes:', error.message, error.details, error.hint);
-      alert('Erro ao salvar quebra: ' + error.message);
+      Toast.error('Erro ao salvar quebra: ' + error.message);
       return null;
     }
 
@@ -61,7 +61,7 @@ const quebrasManager = (() => {
 
     if (error) {
       console.error('Erro ao atualizar quebra:', error);
-      alert('Erro ao atualizar quebra no banco de dados');
+      Toast.error('Erro ao atualizar quebra no banco de dados');
       return null;
     }
 
@@ -76,7 +76,7 @@ const quebrasManager = (() => {
 
     if (error) {
       console.error('Erro ao excluir quebra:', error);
-      alert('Erro ao excluir quebra do banco de dados');
+      Toast.error('Erro ao excluir quebra do banco de dados');
       return false;
     }
 
@@ -554,7 +554,7 @@ const quebrasUI = (() => {
     attachEditarExcluirEvents();
     } catch (erro) {
       console.error('❌ Erro ao renderizar lista:', erro);
-      alert('Erro ao carregar quebras: ' + erro.message);
+      Toast.error('Erro ao carregar quebras: ' + erro.message);
     }
   };
 
@@ -624,9 +624,13 @@ const quebrasUI = (() => {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
         const id = btn.getAttribute('data-id');
-        if (confirm('Tem certeza que deseja excluir este vale?')) {
+        const confirmed = await ConfirmDialog.confirmDelete('este vale/quebra');
+        if (confirmed) {
+          Loading.show('Excluindo...');
           await quebrasManager.deleteQuebra(id);
           await renderLista();
+          Loading.hide();
+          Toast.success('Vale excluído com sucesso!');
         }
       });
     });
@@ -819,7 +823,7 @@ const quebrasUI = (() => {
           valoresAdicionais.push(valor);
           renderizarValoresAdicionais();
         } else {
-          alert('Digite um valor válido!');
+          Toast.warning('Digite um valor válido!');
         }
       }
     });
@@ -856,12 +860,12 @@ const quebrasUI = (() => {
       console.log('📋 Dados do formulário:', { funcionarioValue, tipo, valor, data, situacao });
 
       if (!funcionarioValue || !tipo || !valor || !data) {
-        alert('Todos os campos obrigatórios devem ser preenchidos!');
+        Toast.warning('Todos os campos obrigatórios devem ser preenchidos!');
         return;
       }
 
       if (tipo === 'dinheiro' && !situacao) {
-        alert('Informe a situação (Faltou/Sobrou) para tipo Dinheiro!');
+        Toast.warning('Informe a situação (Faltou/Sobrou) para tipo Dinheiro!');
         return;
       }
 
@@ -872,7 +876,7 @@ const quebrasUI = (() => {
         const valorComprovante = document.getElementById('valorComprovante').value;
 
         if (!tipoComprovante || !valorComprovante) {
-          alert('Informe o tipo e valor do comprovante para este tipo de quebra!');
+          Toast.warning('Informe o tipo e valor do comprovante para este tipo de quebra!');
           return;
         }
 
@@ -884,6 +888,7 @@ const quebrasUI = (() => {
 
       const [funcionarioId, funcionarioNome] = funcionarioValue.split('|');
       
+      Loading.show('Salvando quebra...');
       console.log('💾 Salvando quebra principal...');
       // Adicionar o vale principal
       await quebrasManager.addQuebra(funcionarioId, funcionarioNome, tipo, valor, data, descricao, situacao, comprovante);
@@ -893,6 +898,9 @@ const quebrasUI = (() => {
       for (const valorAdicional of valoresAdicionais) {
         await quebrasManager.addQuebra(funcionarioId, funcionarioNome, tipo, valorAdicional, data, 'Perda adicional na mesma finalizadora', null, comprovante);
       }
+      
+      Loading.hide();
+      Toast.success('Quebra registrada com sucesso!');
 
       console.log('✅ Quebra salva com sucesso! Voltando à lista...');
       await backToList();
@@ -900,10 +908,19 @@ const quebrasUI = (() => {
 
     document.getElementById('btnCancel').addEventListener('click', async () => await backToList());
     
+    // Atalhos de teclado
+    KeyboardShortcuts.register('s', () => {
+      document.getElementById('formQuebra').requestSubmit();
+    }, { ctrl: true, description: 'Salvar quebra' });
+    
+    KeyboardShortcuts.register('Escape', async () => {
+      await backToList();
+    }, { description: 'Cancelar e voltar' });
+    
     console.log('✅ showAddQuebraPage concluído com sucesso');
     } catch (error) {
       console.error('❌ Erro em showAddQuebraPage:', error);
-      alert('Erro ao carregar formulário de quebras. Verifique o console.');
+      Toast.error('Erro ao carregar formulário de quebras. Verifique o console.');
     }
   };
 
@@ -1024,12 +1041,12 @@ const quebrasUI = (() => {
       const situacao = tipo === 'dinheiro' ? document.getElementById('situacao').value : null;
 
       if (!funcionarioValue || !tipo || !valor || !data) {
-        alert('Todos os campos obrigatórios devem ser preenchidos!');
+        Toast.warning('Todos os campos obrigatórios devem ser preenchidos!');
         return;
       }
 
       if (tipo === 'dinheiro' && !situacao) {
-        alert('Informe a situação (Faltou/Sobrou) para tipo Dinheiro!');
+        Toast.warning('Informe a situação (Faltou/Sobrou) para tipo Dinheiro!');
         return;
       }
 
@@ -1041,7 +1058,7 @@ const quebrasUI = (() => {
         const valorComprovante = document.getElementById('valorComprovante').value;
 
         if (!tipoComprovante || !valorComprovante) {
-          alert('Informe o tipo e valor do comprovante para este tipo de quebra!');
+          Toast.warning('Informe o tipo e valor do comprovante para este tipo de quebra!');
           return;
         }
 
@@ -1052,11 +1069,23 @@ const quebrasUI = (() => {
       }
 
       const [funcionarioId, funcionarioNome] = funcionarioValue.split('|');
+      Loading.show('Atualizando...');
       await quebrasManager.updateQuebra(id, funcionarioId, funcionarioNome, tipo, valor, data, descricao, situacao, comprovante);
+      Loading.hide();
+      Toast.success('Quebra atualizada com sucesso!');
       await backToList();
     });
 
     document.getElementById('btnCancel').addEventListener('click', async () => await backToList());
+    
+    // Atalhos de teclado
+    KeyboardShortcuts.register('s', () => {
+      document.getElementById('formQuebra').requestSubmit();
+    }, { ctrl: true, description: 'Salvar alterações' });
+    
+    KeyboardShortcuts.register('Escape', async () => {
+      await backToList();
+    }, { description: 'Cancelar e voltar' });
 
     const tipoSelect = document.getElementById('tipo');
     const situacaoRow = document.getElementById('situacaoRow');

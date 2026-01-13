@@ -31,7 +31,7 @@ const FaltasManager = (() => {
     if (error) {
       console.error('Erro ao adicionar falta:', error);
       console.error('Detalhes:', error.message, error.details, error.hint);
-      alert('Erro ao salvar falta: ' + error.message);
+      Toast.error('Erro ao salvar falta: ' + error.message);
       return null;
     }
 
@@ -52,7 +52,7 @@ const FaltasManager = (() => {
       .eq('id', id);
 
     if (error) {
-      alert('Erro ao atualizar falta');
+      Toast.error('Erro ao atualizar falta');
       console.error(error);
       return null;
     }
@@ -67,7 +67,7 @@ const FaltasManager = (() => {
       .eq('id', id);
 
     if (error) {
-      alert('Erro ao excluir');
+      Toast.error('Erro ao excluir');
       console.error(error);
     }
     return true;
@@ -596,9 +596,13 @@ const FaltasUI = (() => {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
         const id = btn.getAttribute('data-id');
-        if (confirm('Tem certeza que deseja excluir este registro?')) {
+        const confirmed = await ConfirmDialog.confirmDelete('este registro de falta');
+        if (confirmed) {
+          Loading.show('Excluindo...');
           await FaltasManager.deleteFalta(id);
           await renderLista();
+          Loading.hide();
+          Toast.success('Registro excluído com sucesso!');
         }
       });
     });
@@ -767,7 +771,7 @@ const FaltasUI = (() => {
       const justificativa = document.getElementById('justificativa').value.trim();
 
       if (!funcionarioValue || !tipo) {
-        alert('Todos os campos obrigatórios devem ser preenchidos!');
+        Toast.warning('Todos os campos obrigatórios devem ser preenchidos!');
         return;
       }
 
@@ -779,17 +783,18 @@ const FaltasUI = (() => {
         const dataFim = document.getElementById('dataFim').value;
         
         if (!dataInicio || !dataFim) {
-          alert('Preencha a data de início e fim do atestado!');
+          Toast.warning('Preencha a data de início e fim do atestado!');
           return;
         }
         
         // Validar que data fim é maior ou igual a data início
         if (new Date(dataFim) < new Date(dataInicio)) {
-          alert('A data de fim deve ser igual ou posterior à data de início!');
+          Toast.warning('A data de fim deve ser igual ou posterior à data de início!');
           return;
         }
         
         // Criar um registro para cada dia do período
+        Loading.show('Criando registros de atestado...');
         const inicio = new Date(dataInicio);
         const fim = new Date(dataFim);
         
@@ -798,16 +803,21 @@ const FaltasUI = (() => {
           await FaltasManager.addFalta(funcionarioId, funcionarioNome, tipo, dataAtual, true, `Atestado de ${formatarData(dataInicio)} até ${formatarData(dataFim)}`);
           inicio.setDate(inicio.getDate() + 1);
         }
+        Loading.hide();
+        Toast.success('Atestado registrado com sucesso!');
       } else {
         // Falta: usar data única
         const data = document.getElementById('data').value;
         
         if (!data) {
-          alert('Preencha a data da falta!');
+          Toast.warning('Preencha a data da falta!');
           return;
         }
         
+        Loading.show('Salvando...');
         await FaltasManager.addFalta(funcionarioId, funcionarioNome, tipo, data, justificada, justificativa);
+        Loading.hide();
+        Toast.success('Falta registrada com sucesso!');
       }
       
       backToList();
@@ -815,10 +825,19 @@ const FaltasUI = (() => {
 
     document.getElementById('btnCancel').addEventListener('click', async () => await backToList());
     
+    // Atalhos de teclado
+    KeyboardShortcuts.register('s', () => {
+      document.getElementById('formFalta').requestSubmit();
+    }, { ctrl: true, description: 'Salvar falta' });
+    
+    KeyboardShortcuts.register('Escape', async () => {
+      await backToList();
+    }, { description: 'Cancelar e voltar' });
+    
     console.log('showAddFaltaPage concluído com sucesso');
     } catch (error) {
       console.error('Erro em showAddFaltaPage:', error);
-      alert('Erro ao carregar formulário de faltas. Verifique o console.');
+      Toast.error('Erro ao carregar formulário de faltas. Verifique o console.');
     }
   };
 
@@ -929,16 +948,28 @@ const FaltasUI = (() => {
       const justificativa = document.getElementById('justificativa').value.trim();
 
       if (!funcionarioValue || !tipo || !data) {
-        alert('Todos os campos obrigatórios devem ser preenchidos!');
+        Toast.warning('Todos os campos obrigatórios devem ser preenchidos!');
         return;
       }
 
       const [funcionarioId, funcionarioNome] = funcionarioValue.split('|');
+      Loading.show('Atualizando...');
       await FaltasManager.updateFalta(id, funcionarioId, funcionarioNome, tipo, data, justificada, justificativa);
+      Loading.hide();
+      Toast.success('Falta atualizada com sucesso!');
       backToList();
     });
 
     document.getElementById('btnCancel').addEventListener('click', async () => await backToList());
+    
+    // Atalhos de teclado
+    KeyboardShortcuts.register('s', () => {
+      document.getElementById('formFalta').requestSubmit();
+    }, { ctrl: true, description: 'Salvar alterações' });
+    
+    KeyboardShortcuts.register('Escape', async () => {
+      await backToList();
+    }, { description: 'Cancelar e voltar' });
   };
 
   return {
