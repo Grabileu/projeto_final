@@ -349,7 +349,7 @@ const ceasaUI = (() => {
       </div>
     `;
 
-    const totalFornecedor = compras.reduce((sum, c) => sum + (parseFloat(c.valor) * c.caixas), 0);
+    const totalFornecedor = comprasFiltradasProdutos.reduce((sum, c) => sum + (parseFloat(c.valor) * c.caixas), 0);
     html += `
       <div style="margin-bottom: 16px; padding: 12px; background: #f0fdf4; border-left: 4px solid #059669; border-radius: 4px;">
         <strong style="color: #166534;">Total do fornecedor: ${formatarMoeda(totalFornecedor)}</strong>
@@ -357,7 +357,7 @@ const ceasaUI = (() => {
     `;
 
     html += '<div class="ceasa-list"><ul>';
-    compras.forEach((compra, idx) => {
+    comprasFiltradasProdutos.forEach((compra, idx) => {
       const valorTotal = parseFloat(compra.valor) * compra.caixas;
       const custoProduto = compra.tipo === 'unidade' ? compra.valor : (compra.quantidade > 0 ? compra.valor / compra.quantidade : 0);
       html += `
