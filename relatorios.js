@@ -32,7 +32,7 @@ const relatóriosUI = (() => {
     const tiposDisponiveis = Array.from(new Set(quebras.map(q => q.tipo || '-'))).sort((a,b)=>a.localeCompare(b));
 
     let html = `
-      <div style="width: 100%; height: calc(100vh - 200px);">
+      <div style="width: 100%;">
         <!-- FILTROS NO TOPO -->
         <div style="margin-bottom: 20px; padding: 16px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
           <h3 style="margin: 0 0 12px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtros</h3>
@@ -84,7 +84,7 @@ const relatóriosUI = (() => {
         </div>
 
         <!-- ÁREA PRINCIPAL -->
-        <div id="relatorioPrintQuebras" style="background: white; padding: 20px; border-radius: 8px; overflow-y: auto; max-height: calc(100vh - 400px);"></div>
+        <div id="relatorioPrintQuebras" style="background: white; padding: 20px; border-radius: 8px;"></div>
       </div>
     `;
 
@@ -464,7 +464,7 @@ const relatóriosUI = (() => {
     }))).sort((a,b)=>a.localeCompare(b));
 
     let html = `
-      <div style="width: 100%; height: calc(100vh - 200px);">
+      <div style="width: 100%;">
         <!-- FILTROS NO TOPO -->
         <div style="margin-bottom: 20px; padding: 16px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
           <h3 style="margin: 0 0 12px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtros</h3>
@@ -510,7 +510,7 @@ const relatóriosUI = (() => {
         </div>
 
         <!-- ÁREA PRINCIPAL -->
-        <div id="relatorioPrintFaltas" style="background: white; padding: 20px; border-radius: 8px; overflow-y: auto; max-height: calc(100vh - 400px);">
+        <div id="relatorioPrintFaltas" style="background: white; padding: 20px; border-radius: 8px;">
         <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px;">
           <h2 style="margin: 0; color: #111827;">RELATÓRIO DE FALTAS E ATESTADOS</h2>
         </div>
@@ -813,7 +813,7 @@ const relatóriosUI = (() => {
     }))).sort((a,b)=>a.localeCompare(b));
 
     let html = `
-      <div style="width: 100%; height: calc(100vh - 200px);">
+      <div style="width: 100%;">
         <!-- FILTROS NO TOPO -->
         <div style="margin-bottom: 20px; padding: 16px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
           <h3 style="margin: 0 0 12px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtros</h3>
@@ -851,7 +851,7 @@ const relatóriosUI = (() => {
         </div>
 
         <!-- ÁREA PRINCIPAL -->
-        <div id="relatorioPrintCeasa" style="background: white; padding: 20px; border-radius: 8px; overflow-y: auto; max-height: calc(100vh - 400px);">
+        <div id="relatorioPrintCeasa" style="background: white; padding: 20px; border-radius: 8px;">
         <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px;">
           <h2 style="margin: 0; color: #111827;">RELATÓRIO DE COMPRAS - CEASA</h2>
         </div>
@@ -1158,7 +1158,7 @@ const relatóriosUI = (() => {
     const cargosDisponiveis = Array.from(new Set(funcionarios.map(f => f.cargo || '-'))).sort((a,b)=>a.localeCompare(b));
 
     let html = `
-      <div style="width: 100%; height: calc(100vh - 200px);">
+      <div style="width: 100%;">
         <!-- FILTROS NO TOPO -->
         <div style="margin-bottom: 20px; padding: 16px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
           <h3 style="margin: 0 0 12px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtros</h3>
@@ -1188,7 +1188,7 @@ const relatóriosUI = (() => {
         </div>
 
         <!-- ÁREA PRINCIPAL -->
-        <div id="relatorioPrintFuncionarios" style="background: white; padding: 20px; border-radius: 8px; overflow-y: auto; max-height: calc(100vh - 400px);">
+        <div id="relatorioPrintFuncionarios" style="background: white; padding: 20px; border-radius: 8px;">
         <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px;">
           <h2 style="margin: 0; color: #111827;">RELATÓRIO DE FUNCIONÁRIOS</h2>
         </div>

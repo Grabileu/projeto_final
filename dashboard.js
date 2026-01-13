@@ -79,7 +79,7 @@ const dashboardUI = (() => {
 
     // Renderizar dashboard
     let html = `
-      <div style="width: 100%; height: calc(100vh - 200px); overflow-y: auto; padding: 20px; box-sizing: border-box;">
+      <div style="width: 100%; padding: 20px; box-sizing: border-box;">
         <h2 style="margin-bottom: 30px; color: #111827; text-align: center;">Resumo Geral - ${hoje.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</h2>
         
         <!-- Cards de Resumo -->

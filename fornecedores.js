@@ -186,7 +186,16 @@ const fornecedoresUI = (() => {
           <div style="margin-top: 12px;">
             <strong>Produtos:</strong>
             <ul style="margin-top: 6px; padding-left: 20px;">
-              ${fornecedor.produtos.map(p => `<li style="margin-bottom: 4px;">${p.nome} - ${p.kg}kg</li>`).join('')}
+              ${fornecedor.produtos.map(p => {
+                // Compatibilidade com produtos antigos que usavam 'kg'
+                const unidade = p.unidade || (p.kg ? 'kg' : 'kg');
+                const valorExibir = p.valor || p.kg || '0';
+                if (unidade === 'unidade') {
+                  return `<li style="margin-bottom: 4px;">${p.nome} (por unidade)</li>`;
+                } else {
+                  return `<li style="margin-bottom: 4px;">${p.nome} - ${valorExibir}kg</li>`;
+                }
+              }).join('')}
             </ul>
           </div>
         ` : '<div style="margin-top: 12px;"><em style="color: #888;">Nenhum produto cadastrado</em></div>'}
@@ -234,12 +243,11 @@ const fornecedoresUI = (() => {
     if (h2) h2.style.display = 'none';
 
     panelBody.innerHTML = `
-      <div style="width: 100%; height: calc(100vh - 200px); overflow-y: auto;">
-        <div class="form-page">
-          <div class="form-header">
-            <h2>Adicionar fornecedor</h2>
-          </div>
-          <form id="formFornecedor" class="form-large">
+      <div class="form-page">
+        <div class="form-header">
+          <h2>Adicionar fornecedor</h2>
+        </div>
+        <form id="formFornecedor" class="form-large">
           <div class="form-row">
             <div class="form-group">
               <label for="nome">Nome *</label>
@@ -286,8 +294,12 @@ const fornecedoresUI = (() => {
       }
       container.innerHTML = produtos.map((p, idx) => `
         <div class="produto-item" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-          <input type="text" class="produto-nome" value="${p.nome}" placeholder="Produto" required style="width:140px;">
-          <input type="number" class="produto-kg" value="${p.kg}" min="0.01" step="0.01" placeholder="Kg" required style="width:80px;">
+          <input type="text" class="produto-nome" value="${p.nome || ''}" placeholder="Produto" required style="width:140px;">
+          <select class="produto-unidade" style="width:90px;" data-idx="${idx}">
+            <option value="kg" ${p.unidade === 'kg' ? 'selected' : ''}>Kg</option>
+            <option value="unidade" ${p.unidade === 'unidade' ? 'selected' : ''}>Unidade</option>
+          </select>
+          <input type="number" class="produto-valor" value="${p.valor ? p.valor : ''}" min="0.01" step="0.01" placeholder="${p.unidade === 'unidade' ? 'Opcional' : 'Kg'}" ${p.unidade === 'kg' ? 'required' : ''} style="width:80px;">
           <button type="button" class="btn btn-remove-produto" data-idx="${idx}" title="Remover produto">🗑️</button>
         </div>
       `).join('');
@@ -304,15 +316,21 @@ const fornecedoresUI = (() => {
           produtos[i].nome = e.target.value;
         });
       });
-      container.querySelectorAll('.produto-kg').forEach((input, i) => {
+      container.querySelectorAll('.produto-unidade').forEach((select, i) => {
+        select.addEventListener('change', (e) => {
+          produtos[i].unidade = e.target.value;
+          renderProdutos();
+        });
+      });
+      container.querySelectorAll('.produto-valor').forEach((input, i) => {
         input.addEventListener('input', (e) => {
-          produtos[i].kg = e.target.value;
+          produtos[i].valor = e.target.value;
         });
       });
     };
 
     document.getElementById('btnAddProduto').addEventListener('click', () => {
-      produtos.push({ nome: '', kg: '' });
+      produtos.push({ nome: '', unidade: 'kg', valor: '' });
       renderProdutos();
     });
 
@@ -326,7 +344,12 @@ const fornecedoresUI = (() => {
       const endereco = document.getElementById('endereco').value.trim();
 
       // Validação dos produtos
-      const produtosValidos = produtos.filter(p => p.nome && p.kg && parseFloat(p.kg) > 0);
+      const produtosValidos = produtos.filter(p => {
+        if (!p.nome) return false;
+        // Se for kg, precisa ter valor
+        if (p.unidade === 'kg' && (!p.valor || parseFloat(p.valor) <= 0)) return false;
+        return true;
+      });
 
       if (!nome || !contato || !email || !endereco) {
         alert('Preencha todos os campos obrigatórios!');
@@ -355,12 +378,11 @@ const fornecedoresUI = (() => {
     if (h2) h2.style.display = 'none';
 
     panelBody.innerHTML = `
-      <div style="width: 100%; height: calc(100vh - 200px); overflow-y: auto;">
-        <div class="form-page">
-          <div class="form-header">
-            <h2>Editar fornecedor</h2>
-          </div>
-          <form id="formFornecedor" class="form-large" data-id="${id}">
+      <div class="form-page">
+        <div class="form-header">
+          <h2>Editar fornecedor</h2>
+        </div>
+        <form id="formFornecedor" class="form-large" data-id="${id}">
           <div class="form-row">
             <div class="form-group">
               <label for="nome">Nome *</label>
@@ -407,8 +429,12 @@ const fornecedoresUI = (() => {
       }
       container.innerHTML = produtos.map((p, idx) => `
         <div class="produto-item" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-          <input type="text" class="produto-nome" value="${p.nome}" placeholder="Produto" required style="width:140px;">
-          <input type="number" class="produto-kg" value="${p.kg}" min="0.01" step="0.01" placeholder="Kg" required style="width:80px;">
+          <input type="text" class="produto-nome" value="${p.nome || ''}" placeholder="Produto" required style="width:140px;">
+          <select class="produto-unidade" style="width:90px;" data-idx="${idx}">
+            <option value="kg" ${(p.unidade === 'kg' || !p.unidade) ? 'selected' : ''}>Kg</option>
+            <option value="unidade" ${p.unidade === 'unidade' ? 'selected' : ''}>Unidade</option>
+          </select>
+          <input type="number" class="produto-valor" value="${p.valor ? p.valor : (p.kg ? p.kg : '')}" min="0.01" step="0.01" placeholder="${p.unidade === 'unidade' ? 'Opcional' : 'Kg'}" ${(p.unidade === 'kg' || !p.unidade) ? 'required' : ''} style="width:80px;">
           <button type="button" class="btn btn-remove-produto" data-idx="${idx}" title="Remover produto">🗑️</button>
         </div>
       `).join('');
@@ -424,15 +450,23 @@ const fornecedoresUI = (() => {
           produtos[i].nome = e.target.value;
         });
       });
-      container.querySelectorAll('.produto-kg').forEach((input, i) => {
+      container.querySelectorAll('.produto-unidade').forEach((select, i) => {
+        select.addEventListener('change', (e) => {
+          produtos[i].unidade = e.target.value;
+          delete produtos[i].kg;
+          renderProdutos();
+        });
+      });
+      container.querySelectorAll('.produto-valor').forEach((input, i) => {
         input.addEventListener('input', (e) => {
-          produtos[i].kg = e.target.value;
+          produtos[i].valor = e.target.value;
+          if (!produtos[i].unidade) produtos[i].unidade = 'kg';
         });
       });
     };
 
     document.getElementById('btnAddProduto').addEventListener('click', () => {
-      produtos.push({ nome: '', kg: '' });
+      produtos.push({ nome: '', unidade: 'kg', valor: '' });
       renderProdutos();
     });
 
@@ -445,7 +479,12 @@ const fornecedoresUI = (() => {
       const email = document.getElementById('email').value.trim();
       const endereco = document.getElementById('endereco').value.trim();
 
-      const produtosValidos = produtos.filter(p => p.nome && p.kg && parseFloat(p.kg) > 0);
+      const produtosValidos = produtos.filter(p => {
+        if (!p.nome) return false;
+        // Se for kg, precisa ter valor
+        if ((p.unidade === 'kg' || !p.unidade) && (!p.valor && !p.kg || (p.valor && parseFloat(p.valor) <= 0))) return false;
+        return true;
+      });
 
       if (!nome || !contato || !email || !endereco) {
         alert('Preencha todos os campos obrigatórios!');

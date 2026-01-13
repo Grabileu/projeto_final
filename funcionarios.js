@@ -18,11 +18,13 @@ const FuncionariosManager = (() => {
     const novoFuncionario = {
       nome,
       cargo,
-      data_admissao: dataAdmissao,
+      data_admissao: dataAdmissao || null,
       cpf,
-      salario: parseFloat(salario),
+      salario: salario ? parseFloat(salario) : null,
       loja: loja || null
     };
+
+    console.log('📝 Dados do funcionário a serem salvos:', novoFuncionario);
 
     const { data, error } = await window.supabaseClient
       .from('funcionarios')
@@ -37,20 +39,25 @@ const FuncionariosManager = (() => {
       return null;
     }
 
+    console.log('✅ Funcionário salvo:', data);
     return data;
   };
 
   const updateFuncionario = async (id, nome, cargo, dataAdmissao, cpf, salario, loja) => {
+    const dadosAtualizados = {
+      nome,
+      cargo,
+      data_admissao: dataAdmissao || null,
+      cpf,
+      salario: salario ? parseFloat(salario) : null,
+      loja: loja || null
+    };
+
+    console.log('📝 Atualizando funcionário:', id, dadosAtualizados);
+
     const { data, error } = await window.supabaseClient
       .from('funcionarios')
-      .update({
-        nome,
-        cargo,
-        data_admissao: dataAdmissao,
-        cpf,
-        salario: parseFloat(salario),
-        loja: loja || null
-      })
+      .update(dadosAtualizados)
       .eq('id', id)
       .select()
       .single();
@@ -133,6 +140,9 @@ const FuncionariosUI = (() => {
     return resto === parseInt(somenteNumeros.charAt(10), 10);
   };
 
+  let paginaAtual = 1;
+  const itensPorPagina = 10;
+
   const renderLista = async () => {
     const panelBody = document.querySelector('.panel-body');
     if (!panelBody) {
@@ -140,18 +150,26 @@ const FuncionariosUI = (() => {
       return;
     }
 
-    const funcionarios = await FuncionariosManager.getFuncionarios();
+    const todosFuncionarios = await FuncionariosManager.getFuncionarios();
 
-    if (funcionarios.length === 0) {
+    if (todosFuncionarios.length === 0) {
       panelBody.innerHTML = '<p class="empty">Nenhum funcionário cadastrado. Clique em "Criar funcionário" para adicionar.</p>';
       return;
     }
+
+    // Calcular paginação
+    const totalPaginas = Math.ceil(todosFuncionarios.length / itensPorPagina);
+    if (paginaAtual > totalPaginas) paginaAtual = totalPaginas;
+    
+    const inicio = (paginaAtual - 1) * itensPorPagina;
+    const fim = inicio + itensPorPagina;
+    const funcionarios = todosFuncionarios.slice(inicio, fim);
 
     // Filtro por loja
     let html = `
       <div style="margin-bottom: 20px; padding: 16px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <h3 style="margin: 0 0 12px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtros</h3>
-        <div style="display: flex; gap: 12px; align-items: flex-end;">
+        <div style="display: flex; gap: 12px; align-items: flex-end; justify-content: space-between;">
           <div style="flex: 1; max-width: 300px;">
             <label for="filtroLoja" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Loja</label>
             <select id="filtroLoja" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
@@ -159,6 +177,9 @@ const FuncionariosUI = (() => {
               <option value="AREA VERDE">AREA VERDE</option>
               <option value="SUPER MACHADO">SUPER MACHADO</option>
             </select>
+          </div>
+          <div style="color: #6b7280; font-size: 0.9rem;">
+            Total: ${todosFuncionarios.length} funcionários | Página ${paginaAtual} de ${totalPaginas}
           </div>
         </div>
       </div>
@@ -182,7 +203,39 @@ const FuncionariosUI = (() => {
     });
 
     html += '</ul></div>';
+    
+    // Botões de paginação
+    html += `
+      <div style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 20px; padding: 16px; background: #ffffff; border-radius: 8px; border: 1px solid #e5e7eb;">
+        <button id="btnPaginaAnterior" class="btn secondary" ${paginaAtual === 1 ? 'disabled' : ''} style="${paginaAtual === 1 ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
+          ← Anterior
+        </button>
+        <span style="color: #6b7280; font-weight: 600;">Página ${paginaAtual} de ${totalPaginas}</span>
+        <button id="btnProximaPagina" class="btn secondary" ${paginaAtual === totalPaginas ? 'disabled' : ''} style="${paginaAtual === totalPaginas ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
+          Próxima →
+        </button>
+      </div>
+    `;
+    
     panelBody.innerHTML = html;
+
+    // Paginação
+    const btnAnterior = document.getElementById('btnPaginaAnterior');
+    const btnProxima = document.getElementById('btnProximaPagina');
+    
+    if (btnAnterior && paginaAtual > 1) {
+      btnAnterior.addEventListener('click', () => {
+        paginaAtual--;
+        renderLista();
+      });
+    }
+    
+    if (btnProxima && paginaAtual < totalPaginas) {
+      btnProxima.addEventListener('click', () => {
+        paginaAtual++;
+        renderLista();
+      });
+    }
 
     // Filtro
     document.getElementById('filtroLoja').addEventListener('change', (e) => {
@@ -238,13 +291,12 @@ const FuncionariosUI = (() => {
     if (h2) h2.style.display = 'none';
     
     panelBody.innerHTML = `
-      <div style="width: 100%; height: calc(100vh - 200px); overflow-y: auto;">
-        <div class="form-page">
-          <div class="form-header">
-            <h2>Criar novo funcionário</h2>
-          </div>
-          
-          <form id="formFuncionario" class="form-large">
+      <div class="form-page">
+        <div class="form-header">
+          <h2>Criar novo funcionário</h2>
+        </div>
+        
+        <form id="formFuncionario" class="form-large">
           <div class="form-row">
             <div class="form-group">
               <label for="nome">Nome *</label>
@@ -262,6 +314,7 @@ const FuncionariosUI = (() => {
                 <option>Serviços gerais</option>
                 <option>Salão</option>
                 <option>Gerente</option>
+                <option>Motoqueiro</option>
               </select>
             </div>            <div class="form-group">
               <label for="loja">Loja *</label>
@@ -347,13 +400,12 @@ const FuncionariosUI = (() => {
     if (h2) h2.style.display = 'none';
     
     panelBody.innerHTML = `
-      <div style="width: 100%; height: calc(100vh - 200px); overflow-y: auto;">
-        <div class="form-page">
-          <div class="form-header">
-            <h2>Editar funcionário</h2>
-          </div>
-          
-          <form id="formFuncionario" class="form-large" data-id="${id}">
+      <div class="form-page">
+        <div class="form-header">
+          <h2>Editar funcionário</h2>
+        </div>
+        
+        <form id="formFuncionario" class="form-large" data-id="${id}">
           <div class="form-row">
             <div class="form-group">
               <label for="nome">Nome *</label>
@@ -362,7 +414,7 @@ const FuncionariosUI = (() => {
             <div class="form-group">
               <label for="cargo">Cargo *</label>
               <select id="cargo" name="cargo" required>
-                ${['Caixa','Repositor','Assistente administrativo','Frente de loja','Balconista','Serviços gerais','Salão','Gerente']
+                ${['Caixa','Repositor','Assistente administrativo','Frente de loja','Balconista','Serviços gerais','Salão','Gerente','Motoqueiro']
                   .map(opt => `<option value="${opt}" ${funcionario.cargo===opt ? 'selected' : ''}>${opt}</option>`).join('')}
               </select>
             </div>
@@ -382,7 +434,7 @@ const FuncionariosUI = (() => {
             </div>
             <div class="form-group">
               <label for="dataAdmissao">Data de Admissão *</label>
-              <input type="date" id="dataAdmissao" name="dataAdmissao" value="${funcionario.dataAdmissao}" required />
+              <input type="date" id="dataAdmissao" name="dataAdmissao" value="${funcionario.data_admissao || ''}" required />
             </div>
           </div>
 

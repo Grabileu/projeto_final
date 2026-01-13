@@ -250,7 +250,7 @@ code, pre{
   gap:var(--space-lg);
   flex:1;
   min-height:0;
-  overflow:hidden;
+  overflow:auto;
 }
 .panel{
   background:transparent;
@@ -258,6 +258,10 @@ code, pre{
   padding:0;
   box-shadow:none;
   border:0;
+  display:flex;
+  flex-direction:column;
+  flex:1;
+  min-height:0;
 }
 .panel-header{
   display:flex;
@@ -356,10 +360,11 @@ code, pre{
 .panel-body{
   min-height:140px;
   display:flex;
+  flex-direction:column;
   align-items:flex-start;
   justify-content:flex-start;
   overflow-y:auto;
-  max-height:none;
+  flex:1;
   padding:0;
 }
 .empty{
@@ -388,6 +393,7 @@ code, pre{
 /* Lista de nomes simples */
 .nomes-list {
   width: 100%;
+  overflow-x: hidden;
 }
 
 .nomes-list ul {
@@ -413,7 +419,6 @@ code, pre{
 
 .nome-item:hover {
   background: var(--primary-light);
-  transform: translateX(4px);
   box-shadow:var(--shadow);
   border-left-color:var(--primary-hover);
 }

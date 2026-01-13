@@ -182,6 +182,7 @@ const quebrasUI = (() => {
   let filtroAno = new Date().getFullYear();
   let filtroMes = new Date().getMonth() + 1;
   let filtroLoja = '';
+  let modoVisualizacao = 'funcionario'; // 'funcionario' ou 'data'
 
   const formatarData = (dataISO) => {
     const [year, month, day] = dataISO.split('-');
@@ -218,6 +219,19 @@ const quebrasUI = (() => {
     return tiposLabel[tipo] || tipo;
   };
 
+  const getTipoBadgeColor = (tipo) => {
+    const tiposCor = {
+      'dinheiro': '#059669',
+      'debito': '#3b82f6',
+      'credito': '#8b5cf6',
+      'alimentacao': '#f59e0b',
+      'pos': '#ec4899',
+      'cliente-prazo': '#6366f1',
+      'pix': '#14b8a6'
+    };
+    return tiposCor[tipo] || '#6b7280';
+  };
+
   const renderFiltro = () => {
     const meses = [
       'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -239,13 +253,27 @@ const quebrasUI = (() => {
     return `
       <div style="margin-bottom: 20px; padding: 16px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <h3 style="margin: 0 0 12px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtrar por período</h3>
+        
+        <!-- Modo de Visualização -->
+        <div style="margin-bottom: 16px;">
+          <label style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 6px; font-weight: 600;">Visualizar por:</label>
+          <div style="display: flex; gap: 8px;">
+            <button id="btnModoFuncionario" class="btn-modo ${modoVisualizacao === 'funcionario' ? 'ativo' : ''}" style="flex: 1; padding: 8px 12px; border: 2px solid ${modoVisualizacao === 'funcionario' ? '#3b82f6' : '#d1d5db'}; background: ${modoVisualizacao === 'funcionario' ? '#eff6ff' : 'white'}; color: ${modoVisualizacao === 'funcionario' ? '#1d4ed8' : '#6b7280'}; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem;">
+              👤 Por Funcionário
+            </button>
+            <button id="btnModoData" class="btn-modo ${modoVisualizacao === 'data' ? 'ativo' : ''}" style="flex: 1; padding: 8px 12px; border: 2px solid ${modoVisualizacao === 'data' ? '#3b82f6' : '#d1d5db'}; background: ${modoVisualizacao === 'data' ? '#eff6ff' : 'white'}; color: ${modoVisualizacao === 'data' ? '#1d4ed8' : '#6b7280'}; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem;">
+              📅 Por Data
+            </button>
+          </div>
+        </div>
+        
         <div style="display: flex; gap: 12px; flex-wrap: wrap;">
           <div style="flex: 1; min-width: 150px;">
             <label for="filtroLoja" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Loja</label>
             <select id="filtroLoja" class="filtro-select" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
-              <option value="">Todas as lojas</option>
-              <option value="AREA VERDE">AREA VERDE</option>
-              <option value="SUPER MACHADO">SUPER MACHADO</option>
+              <option value="" ${filtroLoja === '' ? 'selected' : ''}>Todas as lojas</option>
+              <option value="AREA VERDE" ${filtroLoja === 'AREA VERDE' ? 'selected' : ''}>AREA VERDE</option>
+              <option value="SUPER MACHADO" ${filtroLoja === 'SUPER MACHADO' ? 'selected' : ''}>SUPER MACHADO</option>
             </select>
           </div>
           <div style="flex: 1; min-width: 150px;">
@@ -268,6 +296,133 @@ const quebrasUI = (() => {
     `;
   };
 
+  // Renderização por data (cronológica)
+  const renderListaPorData = async () => {
+    try {
+      const panelBody = document.querySelector('.panel-body');
+      if (!panelBody) {
+        console.error('panel-body não encontrado');
+        return;
+      }
+
+      let registros = await quebrasManager.getQuebrasPorMes(filtroAno, filtroMes);
+
+      // Filtrar por loja se selecionado
+      if (filtroLoja) {
+        const { data: funcionarios } = await window.supabaseClient
+          .from('funcionarios')
+          .select('nome, loja');
+        
+        if (funcionarios) {
+          const funcionariosLoja = funcionarios
+            .filter(f => f.loja === filtroLoja)
+            .map(f => f.nome);
+          
+          registros = registros.filter(item => 
+            funcionariosLoja.includes(item.funcionario_nome)
+          );
+        }
+      }
+
+      // Agrupar por data
+      const registrosPorData = {};
+      registros.forEach(registro => {
+        const data = registro.data;
+        if (!registrosPorData[data]) {
+          registrosPorData[data] = [];
+        }
+        registrosPorData[data].push(registro);
+      });
+
+      // Ordenar datas (mais recente primeiro)
+      const datasOrdenadas = Object.keys(registrosPorData).sort((a, b) => new Date(b) - new Date(a));
+
+      let html = `
+        <div style="width: 100%;">
+          <!-- FILTROS NO TOPO -->
+          ${renderFiltro()}
+          
+          <!-- ÁREA DE CONTEÚDO ROLÁVEL -->
+          <div id="quebrasContent" style="background: white; padding: 20px; border-radius: 8px;">
+      `;
+
+      if (datasOrdenadas.length === 0) {
+        html += '<p class="empty">Nenhuma quebra de caixa registrada para este período. Clique em "Adicionar vale" para registrar.</p>';
+        html += '</div></div>';
+        panelBody.innerHTML = html;
+        attachFiltroEvents();
+        return;
+      }
+
+      html += '<div class="quebras-list">';
+      
+      for (const data of datasOrdenadas) {
+        const registrosData = registrosPorData[data];
+        const valorTotal = registrosData.reduce((sum, r) => sum + parseFloat(r.valor), 0);
+
+        html += `
+          <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #f3f4f6;">
+              <div>
+                <div style="font-size: 1.2rem; font-weight: 700; color: #111827; margin-bottom: 6px;">
+                  📅 ${formatarData(data)}
+                </div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                  <span style="background: #fef2f2; color: #dc2626; padding: 4px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; border: 1px solid #fee2e2;">
+                    ${registrosData.length} Vale${registrosData.length !== 1 ? 's' : ''}
+                  </span>
+                  <span style="background: #fee2e2; color: #991b1b; padding: 4px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; border: 1px solid #fecaca;">
+                    Total: ${formatarMoeda(valorTotal)}
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              ${registrosData.map(q => `
+                <div style="background: #fafafa; border-left: 4px solid ${getTipoBadgeColor(q.tipo)}; padding: 14px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                  <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div style="flex: 1;">
+                      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
+                        <span style="background: ${getTipoBadgeColor(q.tipo)}; color: white; padding: 4px 12px; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">
+                          ${getTipoLabel(q.tipo)}
+                        </span>
+                        <span style="color: #374151; font-weight: 700; font-size: 1rem;">
+                          ${q.funcionario_nome}
+                        </span>
+                        <span style="background: #fee2e2; color: #991b1b; padding: 4px 12px; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">
+                          ${formatarMoeda(q.valor)}
+                        </span>
+                      </div>
+                      ${q.descricao ? `<div style="color: #6b7280; font-size: 0.9rem; margin-top: 6px; padding: 8px; background: white; border-radius: 4px;">
+                        📝 ${q.descricao}
+                      </div>` : ''}
+                      ${q.situacao ? `<div style="color: #059669; font-size: 0.85rem; margin-top: 6px; padding: 8px; background: #ecfdf5; border-radius: 4px; border-left: 3px solid #059669;">
+                        ✓ <strong>Situação:</strong> ${q.situacao}
+                      </div>` : ''}
+                    </div>
+                    <div style="display: flex; gap: 6px; margin-left: 12px;">
+                      <button class="btn-edit-quebra" data-id="${q.id}" title="Editar" style="padding: 6px 10px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">✏️</button>
+                      <button class="btn-delete-quebra" data-id="${q.id}" title="Excluir" style="padding: 6px 10px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">🗑️</button>
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      html += '</div></div></div>';
+      panelBody.innerHTML = html;
+
+      attachFiltroEvents();
+      attachEditDeleteEvents();
+    } catch (error) {
+      console.error('❌ Erro em renderListaPorData:', error);
+    }
+  };
+
   const renderLista = async () => {
     try {
       const panelBody = document.querySelector('.panel-body');
@@ -275,6 +430,14 @@ const quebrasUI = (() => {
         console.error('panel-body não encontrado');
         return;
       }
+
+      // Verificar modo de visualização
+      if (modoVisualizacao === 'data') {
+        await renderListaPorData();
+        return;
+      }
+
+      // Modo funcionário (padrão)
 
       console.log('📋 Carregando quebras...');
       let quebrasOrdenadas = await quebrasManager.getQuebrasPorMesOrdenadas(filtroAno, filtroMes);
@@ -304,12 +467,12 @@ const quebrasUI = (() => {
       }
 
       let html = `
-        <div style="width: 100%; height: calc(100vh - 200px);">
+        <div style="width: 100%;">
           <!-- FILTROS NO TOPO -->
           ${renderFiltro()}
           
           <!-- ÁREA DE CONTEÚDO ROLÁVEL -->
-          <div id="quebrasContent" style="background: white; padding: 20px; border-radius: 8px; overflow-y: auto; max-height: calc(100vh - 400px);">
+          <div id="quebrasContent" style="background: white; padding: 20px; border-radius: 8px;">
       `;
 
       if (quebrasOrdenadas.length === 0) {
@@ -325,37 +488,60 @@ const quebrasUI = (() => {
       quebrasOrdenadas.forEach(item => {
         const registros = todasQuebras.filter(q => q.funcionario_nome === item.nome);
         html += `
-        <li class="quebra-item">
-          <div class="quebra-info">
-            <span class="quebra-nome">${item.nome}</span>
-            <div class="quebra-badges">
-              <span class="badge badge-quebra">Vales: ${item.total}</span>
-              <span class="badge badge-valor">Total: ${formatarMoeda(item.valor)}</span>
+        <li class="quebra-item" style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div style="flex: 1;">
+              <div style="font-size: 1.1rem; font-weight: 700; color: #111827; margin-bottom: 8px;">${item.nome}</div>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <span style="background: #fef2f2; color: #dc2626; padding: 4px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; border: 1px solid #fee2e2;">
+                  ${item.total} Vale${item.total !== 1 ? 's' : ''}
+                </span>
+                <span style="background: #fee2e2; color: #991b1b; padding: 4px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; border: 1px solid #fecaca;">
+                  Total: ${formatarMoeda(item.valor)}
+                </span>
+              </div>
             </div>
+            <button class="btn-expandir btn secondary" data-funcionario="${item.nome}" style="white-space: nowrap;">
+              <span class="expandir-icon">▼</span> Ver Detalhes
+            </button>
           </div>
-          <div class="quebra-progress">
-            <div class="progress-bar-valor" style="width: ${Math.min((item.valor / 10) * 100, 100)}%"></div>
-          </div>
-          <div class="quebra-detalhes">
-            <button class="btn-expandir" data-funcionario="${item.nome}" title="Ver detalhes">Detalhes</button>
+          <div style="background: #fee2e2; border-radius: 6px; height: 8px; overflow: hidden;">
+            <div style="background: linear-gradient(90deg, #dc2626, #991b1b); height: 100%; width: ${Math.min((item.valor / 500) * 100, 100)}%; transition: width 0.3s ease;"></div>
           </div>
         </li>
-        <li class="quebra-subitems" id="subitems-${item.nome}" style="display: none;">
-          ${registros.map(q => `
-            <div class="quebra-subitem" style="border-left: 4px solid #dc2626; padding: 12px; margin: 10px 0; background: #fef2f2; border-radius: 6px;">
-              <div class="subitem-info">
-                <span class="badge ${getTipoBadgeClass(q.tipo)}">${getTipoLabel(q.tipo)}</span>
-                ${q.situacao ? `<span class="badge ${q.situacao === 'faltou' ? 'badge-faltou' : 'badge-sobrou'}">${q.situacao === 'faltou' ? 'Faltou' : 'Sobrou'}</span>` : ''}
-                <div class="subitem-data-registro">${formatarData(q.data)}</div>
-                <div class="subitem-valor">${formatarMoeda(q.valor)}</div>
-                ${q.descricao ? `<div class="subitem-descricao">${q.descricao}</div>` : ''}
+        <li class="quebra-subitems" id="subitems-${item.nome}" style="display: none; margin-bottom: 12px;">
+          <div style="background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-left: 20px;">
+            <h4 style="margin: 0 0 12px 0; color: #374151; font-size: 0.95rem; font-weight: 600;">Registros detalhados</h4>
+            ${registros.map(q => `
+              <div style="background: white; border-left: 4px solid #dc2626; padding: 14px; margin-bottom: 10px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: start;">
+                <div style="flex: 1;">
+                  <div style="display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
+                    <span style="background: ${getTipoBadgeColor(q.tipo)}; color: white; padding: 3px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">
+                      ${getTipoLabel(q.tipo)}
+                    </span>
+                    ${q.situacao ? `<span style="background: ${q.situacao === 'faltou' ? '#dc2626' : '#059669'}; color: white; padding: 3px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">
+                      ${q.situacao === 'faltou' ? '❌ Faltou' : '✅ Sobrou'}
+                    </span>` : ''}
+                  </div>
+                  <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 6px;">
+                    <div style="color: #6b7280; font-size: 0.9rem;">
+                      <strong style="color: #374151;">Data:</strong> ${formatarData(q.data)}
+                    </div>
+                    <div style="color: #dc2626; font-size: 0.95rem; font-weight: 700;">
+                      ${formatarMoeda(q.valor)}
+                    </div>
+                  </div>
+                  ${q.descricao ? `<div style="color: #6b7280; font-size: 0.85rem; font-style: italic; margin-top: 6px; padding: 8px; background: #f9fafb; border-radius: 4px;">
+                    💬 ${q.descricao}
+                  </div>` : ''}
+                </div>
+                <div style="display: flex; gap: 6px; margin-left: 12px;">
+                  <button class="btn-edit-quebra" data-id="${q.id}" title="Editar" style="padding: 6px 10px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">✏️</button>
+                  <button class="btn-delete-quebra" data-id="${q.id}" title="Excluir" style="padding: 6px 10px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">🗑️</button>
+                </div>
               </div>
-              <div class="subitem-actions">
-                <button class="btn-edit-quebra" data-id="${q.id}" title="Editar">✏️</button>
-                <button class="btn-delete-quebra" data-id="${q.id}" title="Excluir">🗑️</button>
-              </div>
-            </div>
-          `).join('')}
+            `).join('')}
+          </div>
         </li>
       `;
     });
@@ -378,9 +564,14 @@ const quebrasUI = (() => {
         e.stopPropagation();
         const funcionario = btn.getAttribute('data-funcionario');
         const subItem = document.getElementById(`subitems-${funcionario}`);
+        const icon = btn.querySelector('.expandir-icon');
         if (subItem) {
-          subItem.style.display = subItem.style.display === 'none' ? 'block' : 'none';
-          btn.textContent = subItem.style.display === 'none' ? 'Detalhes' : 'Ocultar';
+          const isHidden = subItem.style.display === 'none';
+          subItem.style.display = isHidden ? 'block' : 'none';
+          if (icon) icon.textContent = isHidden ? '▲' : '▼';
+          btn.innerHTML = isHidden 
+            ? '<span class="expandir-icon">▲</span> Ocultar' 
+            : '<span class="expandir-icon">▼</span> Ver Detalhes';
         }
       });
     });
@@ -397,6 +588,24 @@ const quebrasUI = (() => {
         filtroAno = parseInt(selectAno.value);
         filtroMes = parseInt(selectMes.value);
         filtroLoja = selectLoja.value;
+        await renderLista();
+      });
+    }
+
+    // Botões de modo de visualização
+    const btnModoFuncionario = document.getElementById('btnModoFuncionario');
+    const btnModoData = document.getElementById('btnModoData');
+
+    if (btnModoFuncionario) {
+      btnModoFuncionario.addEventListener('click', async () => {
+        modoVisualizacao = 'funcionario';
+        await renderLista();
+      });
+    }
+
+    if (btnModoData) {
+      btnModoData.addEventListener('click', async () => {
+        modoVisualizacao = 'data';
         await renderLista();
       });
     }
@@ -474,13 +683,12 @@ const quebrasUI = (() => {
       console.log('📝 Renderizando formulário...');
       
       panelBody.innerHTML = `
-        <div style="width: 100%; height: calc(100vh - 200px); overflow-y: auto;">
-          <div class="form-page">
-            <div class="form-header">
-              <h2>Adicionar vale</h2>
-            </div>
-          
-          <form id="formQuebra" class="form-large">
+        <div class="form-page">
+          <div class="form-header">
+            <h2>Adicionar vale</h2>
+          </div>
+        
+        <form id="formQuebra" class="form-large">
           <div class="form-row">
             <div class="form-group">
               <label for="funcionario">Funcionário *</label>
@@ -720,8 +928,7 @@ const quebrasUI = (() => {
     });
     
     panelBody.innerHTML = `
-      <div style="width: 100%; height: calc(100vh - 200px); overflow-y: auto;">
-        <div class="form-page">
+      <div class="form-page">
           <div class="form-header">
             <h2>Editar vale</h2>
           </div>

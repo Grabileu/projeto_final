@@ -401,12 +401,12 @@ const ceasaUI = (() => {
 
     // Renderizar a estrutura do filtro lateral
     panel.innerHTML = `
-      <div style="width: 100%; height: calc(100vh - 200px);">
+      <div style="width: 100%;">
         <!-- FILTROS NO TOPO -->
         ${renderFiltro()}
         
         <!-- ÁREA DE CONTEÚDO ROLÁVEL -->
-        <div id="ceasaContent" style="background: white; padding: 20px; border-radius: 8px; overflow-y: auto; max-height: calc(100vh - 400px);"></div>
+        <div id="ceasaContent" style="background: white; padding: 20px; border-radius: 8px;"></div>
       </div>
     `;
 
@@ -509,12 +509,11 @@ const ceasaUI = (() => {
     const hoje = new Date().toISOString().split('T')[0];
 
     panelBody.innerHTML = `
-      <div style="width: 100%; height: calc(100vh - 200px); overflow-y: auto;">
-        <div class="form-page">
-          <div class="form-header">
-            <h2>Adicionar compra</h2>
-          </div>
-          <form id="formCompra" class="form-large">
+      <div class="form-page">
+        <div class="form-header">
+          <h2>Adicionar compra</h2>
+        </div>
+        <form id="formCompra" class="form-large">
           <!-- 1. Data da compra -->
           <div class="form-row">
             <div class="form-group">
@@ -889,12 +888,11 @@ const ceasaUI = (() => {
     });
 
     panelBody.innerHTML = `
-      <div style="width: 100%; height: calc(100vh - 200px); overflow-y: auto;">
-        <div class="form-page">
-          <div class="form-header">
-            <h2>Editar compra</h2>
-          </div>
-          <form id="formCompra" class="form-large" data-id="${id}">
+      <div class="form-page">
+        <div class="form-header">
+          <h2>Editar compra</h2>
+        </div>
+        <form id="formCompra" class="form-large" data-id="${id}">
           <!-- 1. Data da compra -->
           <div class="form-row">
             <div class="form-group">

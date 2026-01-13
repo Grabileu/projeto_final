@@ -159,17 +159,175 @@ const FaltasUI = (() => {
   let filtroAno = new Date().getFullYear();
   let filtroMes = new Date().getMonth() + 1;
   let filtroLoja = '';
+  let modoVisualizacao = 'funcionario'; // 'funcionario' ou 'data'
+  let filtroTipo = 'todos'; // 'todos', 'falta', 'atestado'
+  let filtroJustificativa = 'todos'; // 'todos', 'justificadas', 'nao-justificadas'
 
   const formatarData = (dataISO) => {
     const [year, month, day] = dataISO.split('-');
     return `${day}/${month}/${year}`;
   };
 
-  const renderLista = async () => {
-    const panelBody = document.querySelector('.panel-body');    if (!panelBody) {
+  // Função para aplicar filtros de tipo e justificativa
+  const aplicarFiltros = (registros) => {
+    let resultado = [...registros];
+
+    // Filtrar por tipo
+    if (filtroTipo !== 'todos') {
+      resultado = resultado.filter(r => r.tipo === filtroTipo);
+    }
+
+    // Filtrar por justificativa
+    if (filtroJustificativa === 'justificadas') {
+      resultado = resultado.filter(r => r.justificada === true);
+    } else if (filtroJustificativa === 'nao-justificadas') {
+      resultado = resultado.filter(r => r.justificada === false || !r.justificada);
+    }
+
+    return resultado;
+  };
+
+  // Renderização por data (cronológica)
+  const renderListaPorData = async () => {
+    const panelBody = document.querySelector('.panel-body');    
+    if (!panelBody) {
       console.error('panel-body não encontrado');
       return;
     }
+
+    let registros = await FaltasManager.getFaltasPorMes(filtroAno, filtroMes);
+
+    // Filtrar por loja se selecionado
+    if (filtroLoja) {
+      const funcionarios = await window.supabaseClient
+        .from('funcionarios')
+        .select('nome, loja');
+      
+      if (funcionarios.data) {
+        const funcionariosLoja = funcionarios.data
+          .filter(f => f.loja === filtroLoja)
+          .map(f => f.nome);
+        
+        registros = registros.filter(item => {
+          const nome = item.funcionario_nome || item.funcionarioNome;
+          return funcionariosLoja.includes(nome);
+        });
+      }
+    }
+
+    // Aplicar filtros de tipo e justificativa
+    registros = aplicarFiltros(registros);
+
+    // Agrupar por data
+    const registrosPorData = {};
+    registros.forEach(registro => {
+      const data = registro.data;
+      if (!registrosPorData[data]) {
+        registrosPorData[data] = [];
+      }
+      registrosPorData[data].push(registro);
+    });
+
+    // Ordenar datas (mais recente primeiro)
+    const datasOrdenadas = Object.keys(registrosPorData).sort((a, b) => new Date(b) - new Date(a));
+
+    let html = `
+      <div style="width: 100%;">
+        <!-- FILTROS NO TOPO -->
+        ${renderFiltro()}
+        
+        <!-- ÁREA DE CONTEÚDO ROLÁVEL -->
+        <div id="faltasContent" style="background: white; padding: 20px; border-radius: 8px;">
+    `;
+
+    if (datasOrdenadas.length === 0) {
+      html += '<p class="empty">Nenhuma falta ou atestado registrado neste período. Clique em "Adicionar falta" para registrar.</p>';
+      html += '</div></div>';
+      panelBody.innerHTML = html;
+      attachFiltroEvents();
+      return;
+    }
+
+    html += '<div class="faltas-list">';
+    
+    for (const data of datasOrdenadas) {
+      const registrosData = registrosPorData[data];
+      const faltas = registrosData.filter(r => r.tipo === 'falta').length;
+      const atestados = registrosData.filter(r => r.tipo === 'atestado').length;
+
+      html += `
+        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #f3f4f6;">
+            <div>
+              <div style="font-size: 1.2rem; font-weight: 700; color: #111827; margin-bottom: 6px;">
+                📅 ${formatarData(data)}
+              </div>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                ${faltas > 0 ? `<span style="background: #fef2f2; color: #dc2626; padding: 4px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; border: 1px solid #fee2e2;">
+                  ❌ ${faltas} Falta${faltas !== 1 ? 's' : ''}
+                </span>` : ''}
+                ${atestados > 0 ? `<span style="background: #eff6ff; color: #2563eb; padding: 4px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; border: 1px solid #dbeafe;">
+                  📋 ${atestados} Atestado${atestados !== 1 ? 's' : ''}
+                </span>` : ''}
+              </div>
+            </div>
+            <div style="font-size: 0.9rem; color: #6b7280; font-weight: 600;">
+              Total: ${registrosData.length} registro${registrosData.length !== 1 ? 's' : ''}
+            </div>
+          </div>
+          
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            ${registrosData.map(f => `
+              <div style="background: ${f.tipo === 'atestado' ? '#eff6ff' : '#fef2f2'}; border-left: 4px solid ${f.tipo === 'atestado' ? '#3b82f6' : '#dc2626'}; padding: 14px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                  <div style="flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                      <span style="background: ${f.tipo === 'atestado' ? '#3b82f6' : '#ef4444'}; color: white; padding: 4px 12px; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">
+                        ${f.tipo === 'atestado' ? '📋 Atestado' : '❌ Falta'}
+                      </span>
+                      <span style="color: #374151; font-weight: 700; font-size: 1rem;">
+                        ${f.funcionario_nome || f.funcionarioNome}
+                      </span>
+                    </div>
+                    ${f.tipo === 'atestado' ? '' : (f.justificada ? `<div style="color: #059669; font-size: 0.85rem; margin-top: 6px; padding: 8px; background: #ecfdf5; border-radius: 4px; border-left: 3px solid #059669;">
+                      ✓ <strong>Justificada:</strong> ${f.justificativa || 'Sem descrição'}
+                    </div>` : `<div style="color: #dc2626; font-size: 0.85rem; margin-top: 6px; padding: 8px; background: #fef2f2; border-radius: 4px; border-left: 3px solid #dc2626;">
+                      ✗ <strong>Não justificada</strong>
+                    </div>`)}
+                  </div>
+                  <div style="display: flex; gap: 6px; margin-left: 12px;">
+                    <button class="btn-edit-falta" data-id="${f.id}" title="Editar" style="padding: 6px 10px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">✏️</button>
+                    <button class="btn-delete-falta" data-id="${f.id}" title="Excluir" style="padding: 6px 10px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">🗑️</button>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    html += '</div></div></div>';
+    panelBody.innerHTML = html;
+
+    attachFiltroEvents();
+    attachEditDeleteEvents();
+  };
+
+  const renderLista = async () => {
+    const panelBody = document.querySelector('.panel-body');    
+    if (!panelBody) {
+      console.error('panel-body não encontrado');
+      return;
+    }
+
+    // Verificar modo de visualização
+    if (modoVisualizacao === 'data') {
+      await renderListaPorData();
+      return;
+    }
+
+    // Modo funcionário (padrão)
     let faltasOrdenadas = await FaltasManager.getFaltasOrdenadas(filtroAno, filtroMes);
 
     // Filtrar por loja se selecionado
@@ -190,12 +348,12 @@ const FaltasUI = (() => {
     }
 
     let html = `
-      <div style="width: 100%; height: calc(100vh - 200px);">
+      <div style="width: 100%;">
         <!-- FILTROS NO TOPO -->
         ${renderFiltro()}
         
         <!-- ÁREA DE CONTEÚDO ROLÁVEL -->
-        <div id="faltasContent" style="background: white; padding: 20px; border-radius: 8px; overflow-y: auto; max-height: calc(100vh - 400px);">
+        <div id="faltasContent" style="background: white; padding: 20px; border-radius: 8px;">
     `;
 
     if (faltasOrdenadas.length === 0) {
@@ -210,43 +368,69 @@ const FaltasUI = (() => {
     
     for (const item of faltasOrdenadas) {
       const registros = await FaltasManager.getFaltasPorMes(filtroAno, filtroMes);
-      const registrosFuncionario = registros.filter(f => {
+      let registrosFuncionario = registros.filter(f => {
         const nome = f.funcionario_nome || f.funcionarioNome;
         return nome === item.nome;
       });
+
+      // Aplicar filtros de tipo e justificativa
+      registrosFuncionario = aplicarFiltros(registrosFuncionario);
+
+      // Se após filtros não há registros, pula este funcionário
+      if (registrosFuncionario.length === 0) continue;
+
+      // Recalcular contadores
+      const faltas = registrosFuncionario.filter(f => f.tipo === 'falta').length;
+      const atestados = registrosFuncionario.filter(f => f.tipo === 'atestado').length;
+
       html += `
-        <li class="falta-item">
-          <div class="falta-info">
-            <span class="falta-nome">${item.nome}</span>
-            <div class="falta-badges">
-              <span class="badge badge-falta">Faltas: ${item.faltas}</span>
-              <span class="badge badge-atestado">Atestados: ${item.atestados}</span>
+        <li class="falta-item" style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div style="flex: 1;">
+              <div style="font-size: 1.1rem; font-weight: 700; color: #111827; margin-bottom: 8px;">${item.nome}</div>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <span style="background: #fef2f2; color: #dc2626; padding: 4px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; border: 1px solid #fee2e2;">
+                  ❌ ${faltas} Falta${faltas !== 1 ? 's' : ''}
+                </span>
+                <span style="background: #eff6ff; color: #2563eb; padding: 4px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; border: 1px solid #dbeafe;">
+                  📋 ${atestados} Atestado${atestados !== 1 ? 's' : ''}
+                </span>
+              </div>
             </div>
+            <button class="btn-expandir btn secondary" data-funcionario="${item.nome}" style="white-space: nowrap;">
+              <span class="expandir-icon">▼</span> Ver Detalhes
+            </button>
           </div>
-          <div class="falta-progress">
-            <div class="progress-bar-falta" style="width: ${Math.min(item.faltas * 20, 50)}%"></div>
-            <div class="progress-bar-atestado" style="width: ${Math.min(item.atestados * 20, 50)}%"></div>
-          </div>
-          <div class="falta-detalhes">
-            <button class="btn-expandir" data-funcionario="${item.nome}" title="Ver detalhes">Detalhes</button>
+          <div style="display: flex; gap: 4px; height: 8px; border-radius: 6px; overflow: hidden; background: #f3f4f6;">
+            <div style="background: linear-gradient(90deg, #dc2626, #991b1b); flex: ${faltas}; min-width: ${faltas > 0 ? '20px' : '0'}; transition: all 0.3s ease;"></div>
+            <div style="background: linear-gradient(90deg, #3b82f6, #1d4ed8); flex: ${atestados}; min-width: ${atestados > 0 ? '20px' : '0'}; transition: all 0.3s ease;"></div>
           </div>
         </li>
-        <li class="falta-subitems" id="subitems-${item.nome}" style="display: none;">
-          ${registrosFuncionario.map(f => `
-            <div class="falta-subitem ${f.tipo}" style="border-left: 4px solid ${f.tipo === 'atestado' ? '#3b82f6' : '#ef4444'}; padding: 12px; margin: 10px 0; background: ${f.tipo === 'atestado' ? '#eff6ff' : '#fef2f2'}; border-radius: 6px;">
-              <div class="subitem-info">
-                <div class="subitem-tipo">
-                  <span class="tipo-badge ${f.tipo}">${f.tipo === 'atestado' ? '📋 Atestado' : '❌ Falta'}</span>
+        <li class="falta-subitems" id="subitems-${item.nome}" style="display: none; margin-bottom: 12px;">
+          <div style="background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-left: 20px;">
+            <h4 style="margin: 0 0 12px 0; color: #374151; font-size: 0.95rem; font-weight: 600;">Registros detalhados</h4>
+            ${registrosFuncionario.map(f => `
+              <div style="background: white; border-left: 4px solid ${f.tipo === 'atestado' ? '#3b82f6' : '#dc2626'}; padding: 14px; margin-bottom: 10px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: start;">
+                <div style="flex: 1;">
+                  <div style="margin-bottom: 8px;">
+                    <span style="background: ${f.tipo === 'atestado' ? '#3b82f6' : '#ef4444'}; color: white; padding: 4px 12px; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">
+                      ${f.tipo === 'atestado' ? '📋 Atestado' : '❌ Falta'}
+                    </span>
+                  </div>
+                  <div style="color: #6b7280; font-size: 0.9rem; margin-bottom: 6px;">
+                    <strong style="color: #374151;">Data:</strong> ${formatarData(f.data)}
+                  </div>
+                  ${f.justificada ? `<div style="color: #059669; font-size: 0.85rem; margin-top: 6px; padding: 8px; background: #ecfdf5; border-radius: 4px; border-left: 3px solid #059669;">
+                    ✓ <strong>Justificada:</strong> ${f.justificativa || 'Sem descrição'}
+                  </div>` : ''}
                 </div>
-                <div class="subitem-data-registro">${formatarData(f.data)}</div>
-                ${f.justificada ? `<div class="subitem-justificativa">✓ Justificada: ${f.justificativa}</div>` : ''}
+                <div style="display: flex; gap: 6px; margin-left: 12px;">
+                  <button class="btn-edit-falta" data-id="${f.id}" title="Editar" style="padding: 6px 10px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">✏️</button>
+                  <button class="btn-delete-falta" data-id="${f.id}" title="Excluir" style="padding: 6px 10px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">🗑️</button>
+                </div>
               </div>
-              <div class="subitem-actions">
-                <button class="btn-edit-falta" data-id="${f.id}" title="Editar">✏️</button>
-                <button class="btn-delete-falta" data-id="${f.id}" title="Excluir">🗑️</button>
-              </div>
-            </div>
-          `).join('')}
+            `).join('')}
+          </div>
         </li>
       `;
     }
@@ -279,8 +463,23 @@ const FaltasUI = (() => {
 
     return `
       <div style="margin-bottom: 20px; padding: 16px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-        <h3 style="margin: 0 0 12px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtrar por período</h3>
+        <h3 style="margin: 0 0 12px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtros de Busca</h3>
+        
+        <!-- Modo de Visualização -->
+        <div style="margin-bottom: 16px; padding: 12px; background: #f9fafb; border-radius: 6px;">
+          <label style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 6px; font-weight: 600;">Visualizar por:</label>
+          <div style="display: flex; gap: 8px;">
+            <button id="btnModoFuncionario" class="btn-modo ${modoVisualizacao === 'funcionario' ? 'ativo' : ''}" style="flex: 1; padding: 8px 12px; border: 2px solid ${modoVisualizacao === 'funcionario' ? '#3b82f6' : '#d1d5db'}; background: ${modoVisualizacao === 'funcionario' ? '#eff6ff' : 'white'}; color: ${modoVisualizacao === 'funcionario' ? '#1d4ed8' : '#6b7280'}; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem;">
+              👤 Por Funcionário
+            </button>
+            <button id="btnModoData" class="btn-modo ${modoVisualizacao === 'data' ? 'ativo' : ''}" style="flex: 1; padding: 8px 12px; border: 2px solid ${modoVisualizacao === 'data' ? '#3b82f6' : '#d1d5db'}; background: ${modoVisualizacao === 'data' ? '#eff6ff' : 'white'}; color: ${modoVisualizacao === 'data' ? '#1d4ed8' : '#6b7280'}; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem;">
+              📅 Por Data
+            </button>
+          </div>
+        </div>
+
         <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <!-- Período -->
           <div style="flex: 1; min-width: 150px;">
             <label for="filtroMes" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Mês</label>
             <select id="filtroMes" class="filtro-select" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
@@ -293,14 +492,37 @@ const FaltasUI = (() => {
               ${anosOptions}
             </select>
           </div>
+          
+          <!-- Loja -->
           <div style="flex: 1; min-width: 150px;">
             <label for="filtroLoja" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Loja</label>
             <select id="filtroLoja" class="filtro-select" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
-              <option value="">Todas as lojas</option>
-              <option value="AREA VERDE">AREA VERDE</option>
-              <option value="SUPER MACHADO">SUPER MACHADO</option>
+              <option value="" ${filtroLoja === '' ? 'selected' : ''}>Todas as lojas</option>
+              <option value="AREA VERDE" ${filtroLoja === 'AREA VERDE' ? 'selected' : ''}>AREA VERDE</option>
+              <option value="SUPER MACHADO" ${filtroLoja === 'SUPER MACHADO' ? 'selected' : ''}>SUPER MACHADO</option>
             </select>
           </div>
+          
+          <!-- Tipo -->
+          <div style="flex: 1; min-width: 150px;">
+            <label for="filtroTipo" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Tipo</label>
+            <select id="filtroTipo" class="filtro-select" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
+              <option value="todos" ${filtroTipo === 'todos' ? 'selected' : ''}>Todos</option>
+              <option value="falta" ${filtroTipo === 'falta' ? 'selected' : ''}>Apenas Faltas</option>
+              <option value="atestado" ${filtroTipo === 'atestado' ? 'selected' : ''}>Apenas Atestados</option>
+            </select>
+          </div>
+          
+          <!-- Justificativa -->
+          <div style="flex: 1; min-width: 150px;">
+            <label for="filtroJustificativa" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Justificativa</label>
+            <select id="filtroJustificativa" class="filtro-select" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
+              <option value="todos" ${filtroJustificativa === 'todos' ? 'selected' : ''}>Todas</option>
+              <option value="justificadas" ${filtroJustificativa === 'justificadas' ? 'selected' : ''}>Justificadas</option>
+              <option value="nao-justificadas" ${filtroJustificativa === 'nao-justificadas' ? 'selected' : ''}>Não Justificadas</option>
+            </select>
+          </div>
+          
           <div style="display: flex; align-items: flex-end;">
             <button id="btnAplicarFiltro" class="btn btn-filtro" style="padding: 10px 20px; background: #3B82F6; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Aplicar</button>
           </div>
@@ -310,12 +532,33 @@ const FaltasUI = (() => {
   };
 
   const attachFiltroEvents = () => {
+    // Botão aplicar filtros
     const btnAplicar = document.getElementById('btnAplicarFiltro');
     if (btnAplicar) {
       btnAplicar.addEventListener('click', async () => {
         filtroMes = parseInt(document.getElementById('filtroMes').value);
         filtroAno = parseInt(document.getElementById('filtroAno').value);
         filtroLoja = document.getElementById('filtroLoja').value;
+        filtroTipo = document.getElementById('filtroTipo').value;
+        filtroJustificativa = document.getElementById('filtroJustificativa').value;
+        await renderLista();
+      });
+    }
+
+    // Botões de modo de visualização
+    const btnModoFuncionario = document.getElementById('btnModoFuncionario');
+    const btnModoData = document.getElementById('btnModoData');
+
+    if (btnModoFuncionario) {
+      btnModoFuncionario.addEventListener('click', async () => {
+        modoVisualizacao = 'funcionario';
+        await renderLista();
+      });
+    }
+
+    if (btnModoData) {
+      btnModoData.addEventListener('click', async () => {
+        modoVisualizacao = 'data';
         await renderLista();
       });
     }
@@ -327,9 +570,14 @@ const FaltasUI = (() => {
         e.stopPropagation();
         const funcionario = btn.getAttribute('data-funcionario');
         const subItem = document.getElementById(`subitems-${funcionario}`);
+        const icon = btn.querySelector('.expandir-icon');
         if (subItem) {
-          subItem.style.display = subItem.style.display === 'none' ? 'block' : 'none';
-          btn.textContent = subItem.style.display === 'none' ? 'Detalhes' : 'Ocultar';
+          const isHidden = subItem.style.display === 'none';
+          subItem.style.display = isHidden ? 'block' : 'none';
+          if (icon) icon.textContent = isHidden ? '▲' : '▼';
+          btn.innerHTML = isHidden 
+            ? '<span class="expandir-icon">▲</span> Ocultar' 
+            : '<span class="expandir-icon">▼</span> Ver Detalhes';
         }
       });
     });
@@ -422,7 +670,7 @@ const FaltasUI = (() => {
             </div>
           </div>
 
-          <div class="form-row form-row-checkbox">
+          <div class="form-row form-row-checkbox" id="justificadaRow">
             <div class="form-group checkbox-group">
               <label>
                 <input type="checkbox" id="justificada" name="justificada" />
@@ -445,6 +693,26 @@ const FaltasUI = (() => {
         </form>
       </div>
     `;
+
+    // Controlar visibilidade baseado no tipo
+    document.getElementById('tipo').addEventListener('change', (e) => {
+      const isAtestado = e.target.value === 'atestado';
+      const justificadaRow = document.getElementById('justificadaRow');
+      const justificadaCheckbox = document.getElementById('justificada');
+      const justificativaField = document.getElementById('justificativaField');
+      
+      if (isAtestado) {
+        // Atestado não precisa justificar - ocultar campos
+        justificadaRow.style.display = 'none';
+        justificativaField.style.display = 'none';
+        justificadaCheckbox.checked = true; // Sempre marcado para atestados
+      } else {
+        // Falta pode precisar justificar - mostrar checkbox
+        justificadaRow.style.display = 'flex';
+        justificadaCheckbox.checked = false;
+        justificativaField.style.display = 'none';
+      }
+    });
 
     document.getElementById('justificada').addEventListener('change', (e) => {
       document.getElementById('justificativaField').style.display = e.target.checked ? 'flex' : 'none';
@@ -528,19 +796,19 @@ const FaltasUI = (() => {
             </div>
           </div>
 
-          <div class="form-row form-row-checkbox">
+          <div class="form-row form-row-checkbox" id="justificadaRow" style="display: ${falta.tipo === 'atestado' ? 'none' : 'flex'};">
             <div class="form-group checkbox-group">
               <label>
-                <input type="checkbox" id="justificada" name="justificada" ${falta.justificada ? 'checked' : ''} />
+                <input type="checkbox" id="justificada" name="justificada" ${falta.justificada || falta.tipo === 'atestado' ? 'checked' : ''} />
                 <span>Justificada</span>
               </label>
             </div>
           </div>
 
-          <div class="form-row" id="justificativaField" style="display: ${falta.justificada ? 'flex' : 'none'};">
+          <div class="form-row" id="justificativaField" style="display: ${falta.justificada && falta.tipo !== 'atestado' ? 'flex' : 'none'};">
             <div class="form-group">
               <label for="justificativa">Justificativa</label>
-              <textarea id="justificativa" name="justificativa" placeholder="Digite a justificativa..." rows="4">${falta.justificativa}</textarea>
+              <textarea id="justificativa" name="justificativa" placeholder="Digite a justificativa..." rows="4">${falta.justificativa || ''}</textarea>
             </div>
           </div>
 
@@ -551,6 +819,25 @@ const FaltasUI = (() => {
         </form>
       </div>
     `;
+
+    // Controlar visibilidade baseado no tipo
+    document.getElementById('tipo').addEventListener('change', (e) => {
+      const isAtestado = e.target.value === 'atestado';
+      const justificadaRow = document.getElementById('justificadaRow');
+      const justificadaCheckbox = document.getElementById('justificada');
+      const justificativaField = document.getElementById('justificativaField');
+      
+      if (isAtestado) {
+        // Atestado não precisa justificar - ocultar campos
+        justificadaRow.style.display = 'none';
+        justificativaField.style.display = 'none';
+        justificadaCheckbox.checked = true; // Sempre marcado para atestados
+      } else {
+        // Falta pode precisar justificar - mostrar checkbox
+        justificadaRow.style.display = 'flex';
+        justificativaField.style.display = justificadaCheckbox.checked ? 'flex' : 'none';
+      }
+    });
 
     document.getElementById('justificada').addEventListener('change', (e) => {
       document.getElementById('justificativaField').style.display = e.target.checked ? 'flex' : 'none';
