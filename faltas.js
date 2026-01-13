@@ -256,10 +256,10 @@ const FaltasUI = (() => {
       const atestados = registrosData.filter(r => r.tipo === 'atestado').length;
 
       html += `
-        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #f3f4f6;">
+        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 2px solid #f3f4f6;">
             <div>
-              <div style="font-size: 1.2rem; font-weight: 700; color: #111827; margin-bottom: 6px;">
+              <div style="font-size: 1rem; font-weight: 700; color: #111827; margin-bottom: 4px;">
                 📅 ${formatarData(data)}
               </div>
               <div style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -278,7 +278,7 @@ const FaltasUI = (() => {
           
           <div style="display: flex; flex-direction: column; gap: 10px;">
             ${registrosData.map(f => `
-              <div style="background: ${f.tipo === 'atestado' ? '#eff6ff' : '#fef2f2'}; border-left: 4px solid ${f.tipo === 'atestado' ? '#3b82f6' : '#dc2626'}; padding: 14px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+              <div style="background: ${f.tipo === 'atestado' ? '#eff6ff' : '#fef2f2'}; border-left: 4px solid ${f.tipo === 'atestado' ? '#3b82f6' : '#dc2626'}; padding: 10px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
                 <div style="display: flex; justify-content: space-between; align-items: start;">
                   <div style="flex: 1;">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
@@ -384,10 +384,10 @@ const FaltasUI = (() => {
       const atestados = registrosFuncionario.filter(f => f.tipo === 'atestado').length;
 
       html += `
-        <li class="falta-item" style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <li class="falta-item" style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <div style="flex: 1;">
-              <div style="font-size: 1.1rem; font-weight: 700; color: #111827; margin-bottom: 8px;">${item.nome}</div>
+              <div style="font-size: 1rem; font-weight: 700; color: #111827; margin-bottom: 6px;">${item.nome}</div>
               <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                 <span style="background: #fef2f2; color: #dc2626; padding: 4px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; border: 1px solid #fee2e2;">
                   ❌ ${faltas} Falta${faltas !== 1 ? 's' : ''}
@@ -406,11 +406,11 @@ const FaltasUI = (() => {
             <div style="background: linear-gradient(90deg, #3b82f6, #1d4ed8); flex: ${atestados}; min-width: ${atestados > 0 ? '20px' : '0'}; transition: all 0.3s ease;"></div>
           </div>
         </li>
-        <li class="falta-subitems" id="subitems-${item.nome}" style="display: none; margin-bottom: 12px;">
-          <div style="background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-left: 20px;">
-            <h4 style="margin: 0 0 12px 0; color: #374151; font-size: 0.95rem; font-weight: 600;">Registros detalhados</h4>
+        <li class="falta-subitems" id="subitems-${item.nome}" style="display: none; margin-bottom: 8px;">
+          <div style="background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-left: 20px;">
+            <h4 style="margin: 0 0 10px 0; color: #374151; font-size: 0.9rem; font-weight: 600;">Registros detalhados</h4>
             ${registrosFuncionario.map(f => `
-              <div style="background: white; border-left: 4px solid ${f.tipo === 'atestado' ? '#3b82f6' : '#dc2626'}; padding: 14px; margin-bottom: 10px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: start;">
+              <div style="background: white; border-left: 4px solid ${f.tipo === 'atestado' ? '#3b82f6' : '#dc2626'}; padding: 10px; margin-bottom: 8px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: start;">
                 <div style="flex: 1;">
                   <div style="margin-bottom: 8px;">
                     <span style="background: ${f.tipo === 'atestado' ? '#3b82f6' : '#ef4444'}; color: white; padding: 4px 12px; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">

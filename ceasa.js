@@ -230,14 +230,14 @@ const ceasaUI = (() => {
       const totalDia = comprasDia.reduce((sum, c) => sum + (parseFloat(c.valor) * c.caixas), 0);
       const diaFormatado = formatarData(dia);
       html += `
-        <li class="ceasa-dia" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 20px; background: #fff; border: 2px solid #e5e7eb; border-radius: 8px; margin-bottom: 12px; transition: all 0.2s; min-height: 80px;" data-dia="${dia}">
+        <li class="ceasa-dia" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #fff; border: 2px solid #e5e7eb; border-radius: 8px; margin-bottom: 8px; transition: all 0.2s; min-height: 60px;" data-dia="${dia}">
           <div>
-            <div style="font-weight: 600; font-size: 1.2rem; color: #111827;">${diaFormatado}</div>
-            <div style="font-size: 1rem; color: #6b7280; margin-top: 6px;">${comprasDia.length} compra(s)</div>
+            <div style="font-weight: 600; font-size: 1rem; color: #111827;">${diaFormatado}</div>
+            <div style="font-size: 0.85rem; color: #6b7280; margin-top: 4px;">${comprasDia.length} compra(s)</div>
           </div>
           <div style="text-align: right;">
-            <div style="font-size: 1.3rem; font-weight: 700; color: #059669;">${formatarMoeda(totalDia)}</div>
-            <div style="font-size: 1rem; color: #9ca3af; margin-top: 4px;">→</div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: #059669;">${formatarMoeda(totalDia)}</div>
+            <div style="font-size: 0.9rem; color: #9ca3af; margin-top: 2px;">→</div>
           </div>
         </li>
       `;
@@ -297,14 +297,14 @@ const ceasaUI = (() => {
     fornecedores.forEach((forn, idx) => {
       const totalFornecedor = forn.compras.reduce((sum, c) => sum + (parseFloat(c.valor) * c.caixas), 0);
       html += `
-        <li class="ceasa-fornecedor" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 20px; background: #fff; border: 2px solid #e5e7eb; border-radius: 8px; margin-bottom: 12px; transition: all 0.2s; min-height: 80px;" data-idx="${idx}">
+        <li class="ceasa-fornecedor" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #fff; border: 2px solid #e5e7eb; border-radius: 8px; margin-bottom: 8px; transition: all 0.2s; min-height: 60px;" data-idx="${idx}">
           <div>
-            <div style="font-weight: 600; font-size: 1.2rem; color: #111827;">${forn.nome}</div>
-            <div style="font-size: 1rem; color: #6b7280; margin-top: 6px;">${forn.compras.length} produto(s)</div>
+            <div style="font-weight: 600; font-size: 1rem; color: #111827;">${forn.nome}</div>
+            <div style="font-size: 0.85rem; color: #6b7280; margin-top: 4px;">${forn.compras.length} produto(s)</div>
           </div>
           <div style="text-align: right;">
-            <div style="font-size: 1.3rem; font-weight: 700; color: #059669;">${formatarMoeda(totalFornecedor)}</div>
-            <div style="font-size: 1rem; color: #9ca3af; margin-top: 4px;">→</div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: #059669;">${formatarMoeda(totalFornecedor)}</div>
+            <div style="font-size: 0.9rem; color: #9ca3af; margin-top: 2px;">→</div>
           </div>
         </li>
       `;
@@ -374,10 +374,10 @@ const ceasaUI = (() => {
       const totalLoja = comprasLoja.reduce((sum, c) => sum + (parseFloat(c.valor) * c.caixas), 0);
       
       html += `
-        <div style="margin-bottom: 24px; padding: 16px; background: #f9fafb; border-radius: 8px; border: 2px solid #e5e7eb;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #d1d5db;">
-            <h3 style="margin: 0; font-size: 1.1rem; color: #111827;">🏪 ${loja}</h3>
-            <span style="font-weight: 700; color: #059669; font-size: 1.1rem;">${formatarMoeda(totalLoja)}</span>
+        <div style="margin-bottom: 16px; padding: 12px; background: #f9fafb; border-radius: 8px; border: 2px solid #e5e7eb;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 2px solid #d1d5db;">
+            <h3 style="margin: 0; font-size: 0.95rem; color: #111827;">🏪 ${loja}</h3>
+            <span style="font-weight: 700; color: #059669; font-size: 1rem;">${formatarMoeda(totalLoja)}</span>
           </div>
           <ul>
       `;
@@ -434,7 +434,7 @@ const ceasaUI = (() => {
         ${renderFiltro()}
         
         <!-- ÁREA DE CONTEÚDO ROLÁVEL -->
-        <div id="ceasaContent" style="background: white; padding: 20px; border-radius: 8px;"></div>
+        <div id="ceasaContent" style="background: white; padding: 12px; border-radius: 8px;"></div>
       </div>
     `;
 

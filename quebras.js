@@ -251,7 +251,7 @@ const quebrasUI = (() => {
     });
 
     return `
-      <div style="margin-bottom: 20px; padding: 16px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <div style="margin-bottom: 12px; padding: 12px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <h3 style="margin: 0 0 12px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtrar por período</h3>
         
         <!-- Modo de Visualização -->
@@ -361,7 +361,7 @@ const quebrasUI = (() => {
         const valorTotal = registrosData.reduce((sum, r) => sum + parseFloat(r.valor), 0);
 
         html += `
-          <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #f3f4f6;">
               <div>
                 <div style="font-size: 1.2rem; font-weight: 700; color: #111827; margin-bottom: 6px;">
@@ -488,7 +488,7 @@ const quebrasUI = (() => {
       quebrasOrdenadas.forEach(item => {
         const registros = todasQuebras.filter(q => q.funcionario_nome === item.nome);
         html += `
-        <li class="quebra-item" style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <li class="quebra-item" style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
             <div style="flex: 1;">
               <div style="font-size: 1.1rem; font-weight: 700; color: #111827; margin-bottom: 8px;">${item.nome}</div>
@@ -510,7 +510,7 @@ const quebrasUI = (() => {
           </div>
         </li>
         <li class="quebra-subitems" id="subitems-${item.nome}" style="display: none; margin-bottom: 12px;">
-          <div style="background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-left: 20px;">
+          <div style="background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-left: 20px;">
             <h4 style="margin: 0 0 12px 0; color: #374151; font-size: 0.95rem; font-weight: 600;">Registros detalhados</h4>
             ${registros.map(q => `
               <div style="background: white; border-left: 4px solid #dc2626; padding: 14px; margin-bottom: 10px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: start;">

@@ -41,10 +41,11 @@
   --space-xl: 32px;
 }
 
-*{box-sizing:border-box}
-html,body{height:100%; overflow:hidden}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{height:100%; overflow:hidden; margin:0; padding:0;}
 body{
   margin:0;
+  padding:0;
   font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
   background:var(--bg);
   color:var(--text);
@@ -64,35 +65,36 @@ code, pre{
   display:flex;
   height:100vh;
   align-items:stretch;
-  gap:var(--space-lg);
-  padding:var(--space-lg);
-  justify-content:center;
+  gap:var(--space-md);
+  padding:0 var(--space-md) 0 0;
+  justify-content:flex-start;
   max-width:1440px;
   margin:0 auto;
   overflow:hidden;
 }
 
 .sidebar{
-  width:260px;
+  width:240px;
   background:var(--sidebar);
-  border-radius:var(--radius-lg);
-  padding:var(--space-lg);
+  border-radius:0 var(--radius-lg) var(--radius-lg) 0;
+  padding:var(--space-md);
   box-shadow:var(--shadow);
   display:flex;
   flex-direction:column;
-  gap:var(--space-sm);
+  gap:var(--space-xs);
   flex-shrink:0;
   border:1px solid var(--border-light);
+  border-left:0;
   max-height:100%;
   overflow-y:auto;
 }
 
 .brand{
   display:flex;
-  gap:var(--space-md);
+  gap:var(--space-sm);
   align-items:center;
-  padding-bottom:var(--space-md);
-  margin-bottom:var(--space-md);
+  padding-bottom:var(--space-sm);
+  margin-bottom:var(--space-sm);
   border-bottom:2px solid var(--border-light);
 }
 .logo{
@@ -120,8 +122,8 @@ code, pre{
   width:100%;
   display:flex;
   align-items:center;
-  gap:var(--space-md);
-  padding:12px 14px;
+  gap:var(--space-sm);
+  padding:8px 12px;
   background:transparent;
   border:0;
   border-radius:var(--radius);
@@ -129,7 +131,7 @@ code, pre{
   color:var(--text-muted);
   text-align:left;
   transition:all .2s ease;
-  font-size:0.95rem;
+  font-size:0.9rem;
 }
 .nav-btn:hover{
   background:var(--primary-light);
@@ -1358,7 +1360,7 @@ textarea::placeholder {
 }
 
 .ceasa-item {
-  padding: 14px 16px;
+  padding: 10px 12px;
   background: #f9fafb;
   border-left: 4px solid var(--accent);
   border-radius: 6px;
@@ -1366,19 +1368,19 @@ textarea::placeholder {
   color: var(--text);
   font-weight: 500;
   transition: all 0.12s ease;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .ceasa-info {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .ceasa-produto {
   font-weight: 600;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   color: #111827;
 }
 
