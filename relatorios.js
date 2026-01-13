@@ -210,14 +210,8 @@ const relatóriosUI = (() => {
       });
 
       const funcionariosOrdenados = Object.keys(porFuncionario).sort((a, b) => a.localeCompare(b));
-      
-      // Criar layout em 2 colunas
-      const totalFuncionarios = funcionariosOrdenados.length;
-      const metade = Math.ceil(totalFuncionarios / 2);
-      const coluna1 = funcionariosOrdenados.slice(0, metade);
-      const coluna2 = funcionariosOrdenados.slice(metade);
 
-      inner += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">';
+      inner += '<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 20px;">';
 
       // Função para gerar observação automática
       const gerarObservacao = (quebra) => {
@@ -227,32 +221,28 @@ const relatóriosUI = (() => {
         const comprovante = quebra.comprovante;
 
         if (tipo === 'dinheiro') {
-          // Se tem motivo personalizado, usa ele
           if (motivo && motivo.trim() !== '') {
             return motivo;
           }
-          // Caso contrário, gera automático
           return valor > 0 ? 'Faltou dinheiro' : 'Sobrou dinheiro';
         } else if (tipo === 'pos' || tipo === 'pix' || tipo === 'débito' || tipo === 'debito' || tipo === 'crédito' || tipo === 'credito' || tipo === 'cartão' || tipo === 'cartao') {
-          // Se tem comprovante, mostra o valor do comprovante
           if (comprovante && comprovante.valor) {
             const valorComp = formatarMoeda(parseFloat(comprovante.valor) || 0);
             return `Comprovante de ${valorComp}, Não entregue.`;
           }
-          // Caso contrário, usa o valor da quebra
           return `Comprovante de ${formatarMoeda(Math.abs(valor))}, Não entregue.`;
         } else {
           return motivo || '-';
         }
       };
 
-      // Função auxiliar para renderizar coluna de funcionário
+      // Função auxiliar para renderizar funcionário
       const renderColunaFuncionario = (nomeFuncionario) => {
         const quebrasFunc = porFuncionario[nomeFuncionario].sort((a, b) => a.data.localeCompare(b.data));
         const totalFunc = quebrasFunc.reduce((sum, q) => sum + (parseFloat(q.valor) || 0), 0);
 
         let html = `
-          <div style="border: 2px solid #8b5cf6; border-radius: 8px; padding: 12px; background: #fafafa; margin-bottom: 16px;">
+          <div style="border: 2px solid #8b5cf6; border-radius: 8px; padding: 12px; background: #fafafa;">
             <div style="background: #8b5cf6; color: white; padding: 10px; border-radius: 6px; margin-bottom: 12px; text-align: center; font-weight: 700; font-size: 1.05rem;">
               ${nomeFuncionario}
             </div>
@@ -262,7 +252,7 @@ const relatóriosUI = (() => {
                   <th style="padding: 10px 8px; text-align: center; font-size: 0.85rem; color: #111827; font-weight: 700; border-right: 1px solid #d1d5db;">Data</th>
                   <th style="padding: 10px 8px; text-align: center; font-size: 0.85rem; color: #111827; font-weight: 700; border-right: 1px solid #d1d5db;">Tipo</th>
                   <th style="padding: 10px 8px; text-align: center; font-size: 0.85rem; color: #111827; font-weight: 700; border-right: 1px solid #d1d5db;">Valor</th>
-                  <th style="padding: 10px 8px; text-align: center; font-size: 0.85rem; color: #111827; font-weight: 700;">Observação</th>
+                  <th style="padding: 10px 8px; text-align: center; font-size: 0.85rem; color: #111827; font-weight: 700;">Obs</th>
                 </tr>
               </thead>
               <tbody>
@@ -272,10 +262,10 @@ const relatóriosUI = (() => {
           const bgColor = idx % 2 === 0 ? '#ffffff' : '#f9fafb';
           html += `
             <tr style="border-bottom: 1px solid #e5e7eb; background: ${bgColor};">
-              <td style="padding: 10px 8px; color: #111827; font-size: 0.85rem; font-weight: 600; border-right: 1px solid #e5e7eb;">${formatarData(q.data)}</td>
-              <td style="padding: 10px 8px; color: #6b7280; font-size: 0.85rem; border-right: 1px solid #e5e7eb;">${q.tipo || '-'}</td>
+              <td style="padding: 10px 8px; color: #111827; font-size: 0.85rem; font-weight: 600; border-right: 1px solid #e5e7eb; text-align: center;">${formatarData(q.data)}</td>
+              <td style="padding: 10px 8px; color: #6b7280; font-size: 0.85rem; border-right: 1px solid #e5e7eb; text-align: center;">${q.tipo || '-'}</td>
               <td style="padding: 10px 8px; text-align: right; color: #dc2626; font-weight: 700; font-size: 0.9rem; border-right: 1px solid #e5e7eb;">${formatarMoeda(parseFloat(q.valor) || 0)}</td>
-              <td style="padding: 10px 8px; color: #6b7280; font-size: 0.85rem; font-style: italic;">${gerarObservacao(q)}</td>
+              <td style="padding: 10px 8px; color: #6b7280; font-size: 0.75rem;">${gerarObservacao(q)}</td>
             </tr>
           `;
         });
@@ -294,19 +284,10 @@ const relatóriosUI = (() => {
         return html;
       };
 
-      // Renderizar coluna 1
-      inner += '<div>';
-      coluna1.forEach(nome => {
+      // Renderizar todos os funcionários
+      funcionariosOrdenados.forEach(nome => {
         inner += renderColunaFuncionario(nome);
       });
-      inner += '</div>';
-
-      // Renderizar coluna 2
-      inner += '<div>';
-      coluna2.forEach(nome => {
-        inner += renderColunaFuncionario(nome);
-      });
-      inner += '</div>';
 
       inner += '</div>'; // Fim do grid
 
@@ -416,22 +397,52 @@ const relatóriosUI = (() => {
       link.click();
     });
 
-    document.getElementById('btnToggleFiltros').addEventListener('click', () => {
+    document.getElementById('btnToggleFiltros')?.addEventListener('click', () => {
       const filterBox = document.getElementById('filtersQuebras');
-      filterBox.classList.toggle('active');
+      if (filterBox) filterBox.classList.toggle('active');
     });
 
-    document.getElementById('btnCloseFiltros').addEventListener('click', () => {
+    document.getElementById('btnCloseFiltros')?.addEventListener('click', () => {
       const filterBox = document.getElementById('filtersQuebras');
-      filterBox.classList.remove('active');
+      if (filterBox) filterBox.classList.remove('active');
     });
 
-    document.getElementById('btnAplicarFiltrosQuebras').addEventListener('click', aplicarFiltros);
-    document.getElementById('btnLimparFiltrosQuebras').addEventListener('click', limparFiltros);
-    ['filtroInicio','filtroFim','filtroFuncionario','filtroTipo','filtroForma','filtroLoja'].forEach(id => {
+    const btnAplicar = document.getElementById('btnAplicarFiltrosQuebras');
+    const btnLimpar = document.getElementById('btnLimparFiltrosQuebras');
+    
+    if (btnAplicar) btnAplicar.addEventListener('click', aplicarFiltros);
+    if (btnLimpar) btnLimpar.addEventListener('click', limparFiltros);
+    ['filtroInicio','filtroFim','filtroFuncionario','filtroTipo','filtroLoja'].forEach(id => {
       const el = document.getElementById(id);
-      el.addEventListener('change', aplicarFiltros);
+      if (el) el.addEventListener('change', aplicarFiltros);
     });
+    // Listener especial para filtroForma para reconstruir o layout
+    const filtroFormaEl = document.getElementById('filtroForma');
+    if (filtroFormaEl) {
+      filtroFormaEl.addEventListener('change', () => {
+        const inicio = document.getElementById('filtroInicio').value;
+        const fim = document.getElementById('filtroFim').value;
+        const funcSel = document.getElementById('filtroFuncionario').value;
+        const tipoSel = document.getElementById('filtroTipo').value;
+        const lojaSel = document.getElementById('filtroLoja').value;
+        
+        const filtrados = quebras.filter(q => {
+          const dataOK = (!inicio || q.data >= inicio) && (!fim || q.data <= fim);
+          const nome = obterNomeFuncionario(q);
+          const funcOK = (funcSel === '__todos__' || nome === funcSel);
+          const tipoOK = (tipoSel === '__todos__' || (q.tipo || '-') === tipoSel);
+          
+          let lojaOK = true;
+          if (lojaSel !== '__todos__') {
+            const func = funcionarios.find(f => f.id === q.funcionario_id || f.nome === nome);
+            lojaOK = func && func.loja === lojaSel;
+          }
+          
+          return dataOK && funcOK && tipoOK && lojaOK;
+        });
+        relatorioContainer.innerHTML = construirConteudoRelatorio(filtrados);
+      });
+    }
   };
 
   // Relatório: Faltas e Atestados (agrupado por data)
@@ -762,18 +773,21 @@ const relatóriosUI = (() => {
       link.click();
     });
 
-    document.getElementById('btnToggleFiltrosFaltas').addEventListener('click', () => {
+    document.getElementById('btnToggleFiltrosFaltas')?.addEventListener('click', () => {
       const filterBox = document.getElementById('filtersFaltas');
-      filterBox.classList.toggle('active');
+      if (filterBox) filterBox.classList.toggle('active');
     });
 
-    document.getElementById('btnCloseFiltrosFaltas').addEventListener('click', () => {
+    document.getElementById('btnCloseFiltrosFaltas')?.addEventListener('click', () => {
       const filterBox = document.getElementById('filtersFaltas');
-      filterBox.classList.remove('active');
+      if (filterBox) filterBox.classList.remove('active');
     });
 
-    document.getElementById('btnAplicarFiltrosFaltas').addEventListener('click', aplicarFiltrosFaltas);
-    document.getElementById('btnLimparFiltrosFaltas').addEventListener('click', limparFiltrosFaltas);
+    const btnAplicarFaltas = document.getElementById('btnAplicarFiltrosFaltas');
+    const btnLimparFaltas = document.getElementById('btnLimparFiltrosFaltas');
+    
+    if (btnAplicarFaltas) btnAplicarFaltas.addEventListener('click', aplicarFiltrosFaltas);
+    if (btnLimparFaltas) btnLimparFaltas.addEventListener('click', limparFiltrosFaltas);
     ['filtroInicioFaltas','filtroFimFaltas','filtroFuncionarioFaltas','filtroTipoFaltas','filtroLojaFaltas'].forEach(id => {
       const el = document.getElementById(id);
       el.addEventListener('change', aplicarFiltrosFaltas);
@@ -1111,13 +1125,16 @@ const relatóriosUI = (() => {
       filterBox.classList.toggle('active');
     });
 
-    document.getElementById('btnCloseFiltrosCeasa').addEventListener('click', () => {
+    document.getElementById('btnCloseFiltrosCeasa')?.addEventListener('click', () => {
       const filterBox = document.getElementById('filtersCeasa');
-      filterBox.classList.remove('active');
+      if (filterBox) filterBox.classList.remove('active');
     });
 
-    document.getElementById('btnAplicarFiltrosCeasa').addEventListener('click', aplicarFiltrosCeasa);
-    document.getElementById('btnLimparFiltrosCeasa').addEventListener('click', limparFiltrosCeasa);
+    const btnAplicarCeasa = document.getElementById('btnAplicarFiltrosCeasa');
+    const btnLimparCeasa = document.getElementById('btnLimparFiltrosCeasa');
+    
+    if (btnAplicarCeasa) btnAplicarCeasa.addEventListener('click', aplicarFiltrosCeasa);
+    if (btnLimparCeasa) btnLimparCeasa.addEventListener('click', limparFiltrosCeasa);
     ['filtroInicioCeasa','filtroFimCeasa','filtroFornecedorCeasa','filtroLojaCeasa'].forEach(id => {
       const el = document.getElementById(id);
       el.addEventListener('change', aplicarFiltrosCeasa);
@@ -1379,13 +1396,16 @@ const relatóriosUI = (() => {
       filterBox.classList.toggle('active');
     });
 
-    document.getElementById('btnCloseFiltrosFuncionarios').addEventListener('click', () => {
+    document.getElementById('btnCloseFiltrosFuncionarios')?.addEventListener('click', () => {
       const filterBox = document.getElementById('filtersFuncionarios');
-      filterBox.classList.remove('active');
+      if (filterBox) filterBox.classList.remove('active');
     });
 
-    document.getElementById('btnAplicarFiltrosFuncionarios').addEventListener('click', aplicarFiltrosFuncionarios);
-    document.getElementById('btnLimparFiltrosFuncionarios').addEventListener('click', limparFiltrosFuncionarios);
+    const btnAplicarFunc = document.getElementById('btnAplicarFiltrosFuncionarios');
+    const btnLimparFunc = document.getElementById('btnLimparFiltrosFuncionarios');
+    
+    if (btnAplicarFunc) btnAplicarFunc.addEventListener('click', aplicarFiltrosFuncionarios);
+    if (btnLimparFunc) btnLimparFunc.addEventListener('click', limparFiltrosFuncionarios);
     document.getElementById('filtroCargoFuncionarios').addEventListener('change', aplicarFiltrosFuncionarios);
     document.getElementById('filtroLojaFuncionarios').addEventListener('change', aplicarFiltrosFuncionarios);
   };

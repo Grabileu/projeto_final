@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - GUF Sistemas</title>
+</head>
+<body>
+    <h1>Teste de Carregamento dos Módulos</h1>
+    <div id="status"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
+    <script src="core-manager.js"></script>
+    <script src="ui-manager.js"></script>
+    <script src="auth-manager.js"></script>
+    <script src="export-manager.js"></script>
+    <script src="notifications-manager.js"></script>
+    <script src="analytics-manager.js"></script>
+    <script src="cache-manager.js"></script>
+    <script src="dataSync.js"></script>
+    <script src="funcionarios.js"></script>
+    <script src="faltas.js"></script>
+    <script src="quebras.js"></script>
+    <script src="ceasa.js"></script>
+    <script src="fornecedores.js"></script>
+    <script src="relatorios.js"></script>
+    <script src="dashboard.js"></script>
+    <script src="EXEMPLOS_INTEGRACAO.js"></script>
+    
+    <script>
+        const statusDiv = document.getElementById('status');
+        let html = '<h2>Status dos Módulos:</h2><ul>';
+        
+        // Verificar Dashboard
+        if (typeof window.dashboardUI !== 'undefined' && typeof window.dashboardUI.renderDashboard === 'function') {
+            html += '<li style="color: green;">✅ Dashboard: OK</li>';
+        } else {
+            html += '<li style="color: red;">❌ Dashboard: ERRO</li>';
+        }
+        
+        // Verificar Faltas
+        if (typeof window.FaltasUI !== 'undefined' && typeof window.FaltasUI.renderLista === 'function') {
+            html += '<li style="color: green;">✅ Faltas: OK</li>';
+        } else {
+            html += '<li style="color: red;">❌ Faltas: ERRO</li>';
+        }
+        
+        // Verificar Relatórios
+        if (typeof window.relatóriosUI !== 'undefined' && typeof window.relatóriosUI.renderRelatórioQuebras === 'function') {
+            html += '<li style="color: green;">✅ Relatórios: OK</li>';
+        } else {
+            html += '<li style="color: red;">❌ Relatórios: ERRO</li>';
+        }
+        
+        // Verificar Funcionários
+        if (typeof window.FuncionariosUI !== 'undefined') {
+            html += '<li style="color: green;">✅ Funcionários: OK</li>';
+        } else {
+            html += '<li style="color: red;">❌ Funcionários: ERRO</li>';
+        }
+        
+        // Verificar Quebras
+        if (typeof window.quebrasUI !== 'undefined') {
+            html += '<li style="color: green;">✅ Quebras: OK</li>';
+        } else {
+            html += '<li style="color: red;">❌ Quebras: ERRO</li>';
+        }
+        
+        // Verificar Ceasa
+        if (typeof window.ceasaUI !== 'undefined') {
+            html += '<li style="color: green;">✅ Ceasa: OK</li>';
+        } else {
+            html += '<li style="color: red;">❌ Ceasa: ERRO</li>';
+        }
+        
+        html += '</ul>';
+        html += '<h3>Console de Erros (F12):</h3>';
+        html += '<p>Abra o console do navegador (F12) para ver se há erros de carregamento.</p>';
+        
+        statusDiv.innerHTML = html;
+    </script>
+</body>
+</html>

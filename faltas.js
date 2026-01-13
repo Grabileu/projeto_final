@@ -189,23 +189,24 @@ const FaltasUI = (() => {
       }
     }
 
+    let html = `
+      <div style="width: 100%; height: calc(100vh - 200px);">
+        <!-- FILTROS NO TOPO -->
+        ${renderFiltro()}
+        
+        <!-- ÁREA DE CONTEÚDO ROLÁVEL -->
+        <div id="faltasContent" style="background: white; padding: 20px; border-radius: 8px; overflow-y: auto; max-height: calc(100vh - 400px);">
+    `;
+
     if (faltasOrdenadas.length === 0) {
-      panelBody.innerHTML = `
-        <div class="filtro-container">
-          ${renderFiltro()}
-        </div>
-        <p class="empty">Nenhuma falta ou atestado registrado neste período. Clique em "Adicionar falta" para registrar.</p>
-      `;
+      html += '<p class="empty">Nenhuma falta ou atestado registrado neste período. Clique em "Adicionar falta" para registrar.</p>';
+      html += '</div></div>';
+      panelBody.innerHTML = html;
       attachFiltroEvents();
       return;
     }
 
-    let html = `
-      <div class="filtro-container">
-        ${renderFiltro()}
-      </div>
-      <div class="faltas-list"><ul>
-    `;
+    html += '<div class="faltas-list"><ul>';
     
     for (const item of faltasOrdenadas) {
       const registros = await FaltasManager.getFaltasPorMes(filtroAno, filtroMes);
@@ -250,7 +251,7 @@ const FaltasUI = (() => {
       `;
     }
 
-    html += '</ul></div>';
+    html += '</ul></div></div></div>';
     panelBody.innerHTML = html;
 
     attachFiltroEvents();

@@ -166,40 +166,34 @@ const ceasaUI = (() => {
     });
 
     return `
-      <div style="width: 100%; height: calc(100vh - 200px);">
-        <!-- Filtros no topo -->
-        <div style="margin-bottom: 20px; padding: 16px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-          <h3 style="margin: 0 0 12px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtrar por período</h3>
-          
-          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 150px;">
-              <label for="filtroLoja" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Loja</label>
-              <select id="filtroLoja" class="filtro-select" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
-                <option value="">Todas as lojas</option>
-                <option value="AREA VERDE">AREA VERDE</option>
-                <option value="SUPER MACHADO">SUPER MACHADO</option>
-              </select>
-            </div>
-            <div style="flex: 1; min-width: 150px;">
-              <label for="filtroMes" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Mês</label>
-              <select id="filtroMes" class="filtro-select" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
-                ${mesesOptions}
-              </select>
-            </div>
-            <div style="flex: 1; min-width: 150px;">
-              <label for="filtroAno" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Ano</label>
-              <select id="filtroAno" class="filtro-select" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
-                ${anosOptions}
-              </select>
-            </div>
-            <div style="display: flex; align-items: flex-end;">
-              <button id="btnAplicarFiltro" class="btn btn-filtro" style="cursor: pointer; padding: 10px 20px; background: #3B82F6; color: white; border: none; border-radius: 6px; font-weight: 600;">Aplicar</button>
-            </div>
+      <div style="margin-bottom: 20px; padding: 16px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <h3 style="margin: 0 0 12px 0; color: #111827; font-size: 1.1rem; font-weight: 700;">Filtrar por período</h3>
+        
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 150px;">
+            <label for="filtroLoja" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Loja</label>
+            <select id="filtroLoja" class="filtro-select" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
+              <option value="">Todas as lojas</option>
+              <option value="AREA VERDE">AREA VERDE</option>
+              <option value="SUPER MACHADO">SUPER MACHADO</option>
+            </select>
+          </div>
+          <div style="flex: 1; min-width: 150px;">
+            <label for="filtroMes" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Mês</label>
+            <select id="filtroMes" class="filtro-select" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
+              ${mesesOptions}
+            </select>
+          </div>
+          <div style="flex: 1; min-width: 150px;">
+            <label for="filtroAno" style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px; font-weight: 600;">Ano</label>
+            <select id="filtroAno" class="filtro-select" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box;">
+              ${anosOptions}
+            </select>
+          </div>
+          <div style="display: flex; align-items: flex-end;">
+            <button id="btnAplicarFiltro" class="btn btn-filtro" style="cursor: pointer; padding: 10px 20px; background: #3B82F6; color: white; border: none; border-radius: 6px; font-weight: 600;">Aplicar</button>
           </div>
         </div>
-        
-        <!-- CONTEÚDO PRINCIPAL -->
-        <div id="ceasaContent" style="width: 100%; overflow-y: auto;"></div>
       </div>
     `;
   };
@@ -406,7 +400,15 @@ const ceasaUI = (() => {
     panel.style.width = '100%';
 
     // Renderizar a estrutura do filtro lateral
-    panel.innerHTML = `<div data-panel="ceasa-container">${renderFiltro()}</div>`;
+    panel.innerHTML = `
+      <div style="width: 100%; height: calc(100vh - 200px);">
+        <!-- FILTROS NO TOPO -->
+        ${renderFiltro()}
+        
+        <!-- ÁREA DE CONTEÚDO ROLÁVEL -->
+        <div id="ceasaContent" style="background: white; padding: 20px; border-radius: 8px; overflow-y: auto; max-height: calc(100vh - 400px);"></div>
+      </div>
+    `;
 
     // Renderizar os dias no ceasaContent
     const ceasaContent = document.getElementById('ceasaContent');
@@ -507,11 +509,12 @@ const ceasaUI = (() => {
     const hoje = new Date().toISOString().split('T')[0];
 
     panelBody.innerHTML = `
-      <div class="form-page">
-        <div class="form-header">
-          <h2>Adicionar compra</h2>
-        </div>
-        <form id="formCompra" class="form-large">
+      <div style="width: 100%; height: calc(100vh - 200px); overflow-y: auto;">
+        <div class="form-page">
+          <div class="form-header">
+            <h2>Adicionar compra</h2>
+          </div>
+          <form id="formCompra" class="form-large">
           <!-- 1. Data da compra -->
           <div class="form-row">
             <div class="form-group">
@@ -540,7 +543,9 @@ const ceasaUI = (() => {
           <div class="form-row full">
             <div class="form-group">
               <label>Produtos da compra</label>
-              <div id="produtosCompraContainer" style="margin-bottom:12px;"></div>
+              <div style="max-height: 500px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px; margin-bottom: 12px; width: 100%; box-sizing: border-box;">
+                <div id="produtosCompraContainer" style="width: 100%;"></div>
+              </div>
               <button type="button" id="btnAdicionarProduto" class="btn secondary">+ Adicionar produto</button>
             </div>
           </div>
@@ -558,6 +563,7 @@ const ceasaUI = (() => {
             <button type="button" id="btnCancel" class="btn secondary">Cancelar</button>
           </div>
         </form>
+        </div>
       </div>
     `;
 
@@ -575,18 +581,18 @@ const ceasaUI = (() => {
         return;
       }
 
-      let html = '<table style="width:100%;border-collapse:collapse;margin-bottom:8px;">';
+      let html = '<div style="width: 100%; min-width: 100%; overflow-x: auto;"><table style="width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 8px; table-layout: auto; min-width: 800px;">';
       html += `
         <thead>
-          <tr style="border-bottom:2px solid #ddd;background:#f5f5f5;">
-            <th style="padding:8px;text-align:center;">Tipo</th>
-            <th style="padding:8px;text-align:left;">Produto</th>
-            <th style="padding:8px;text-align:center;">Qtd Cadastrada</th>
-            <th style="padding:8px;text-align:center;">Caixas</th>
-            <th style="padding:8px;text-align:center;">Valor/Caixa</th>
-            <th style="padding:8px;text-align:center;">Custo/Produto</th>
-            <th style="padding:8px;text-align:center;">Valor Total</th>
-            <th style="padding:8px;text-align:center;">Ação</th>
+          <tr style="border-bottom: 2px solid #ddd; background: #f5f5f5; display: flex; gap: 0; width: 100%;">
+            <th style="padding: 10px; text-align: center; flex: 0 0 60px; min-width: 60px; border-right: 1px solid #e5e7eb;">Tipo</th>
+            <th style="padding: 10px; text-align: left; flex: 1.5; min-width: 150px; border-right: 1px solid #e5e7eb;">Produto</th>
+            <th style="padding: 10px; text-align: center; flex: 1; min-width: 80px; border-right: 1px solid #e5e7eb;">Qtd</th>
+            <th style="padding: 10px; text-align: center; flex: 1; min-width: 80px; border-right: 1px solid #e5e7eb;">Caixas</th>
+            <th style="padding: 10px; text-align: center; flex: 1.2; min-width: 100px; border-right: 1px solid #e5e7eb;">Valor/Cx</th>
+            <th style="padding: 10px; text-align: center; flex: 1; min-width: 90px; border-right: 1px solid #e5e7eb;">Custo/Prod</th>
+            <th style="padding: 10px; text-align: center; flex: 1; min-width: 90px; border-right: 1px solid #e5e7eb;">Total</th>
+            <th style="padding: 10px; text-align: center; flex: 0 0 50px; min-width: 50px;">Ação</th>
           </tr>
         </thead>
         <tbody>
@@ -596,30 +602,30 @@ const ceasaUI = (() => {
         const custoProduto = p.tipo === 'unidade' ? p.valor : (p.quantidadeKg > 0 ? p.valor / p.quantidadeKg : 0);
         const valorTotal = p.valor * p.caixas;
         html += `
-          <tr style="border-bottom:1px solid #eee;" data-idx="${idx}">
-            <td style="padding:8px;text-align:center;">
-              <select class="produto-tipo" data-idx="${idx}" style="width:100%;padding:4px;">
+          <tr style="border-bottom: 1px solid #eee; display: flex; gap: 0; padding: 8px 0; width: 100%; align-items: center;" data-idx="${idx}">
+            <td style="padding: 8px 10px; text-align: center; flex: 0 0 60px; min-width: 60px; border-right: 1px solid #e5e7eb;">
+              <select class="produto-tipo" data-idx="${idx}" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.9rem;">
                 <option value="caixa" ${p.tipo === 'caixa' ? 'selected' : ''}>Caixa</option>
                 <option value="unidade" ${p.tipo === 'unidade' ? 'selected' : ''}>Unidade</option>
               </select>
             </td>
-            <td style="padding:8px;">${p.produto}</td>
-            <td style="padding:8px;text-align:center;">${p.quantidadeKg} kg</td>
-            <td style="padding:8px;text-align:center;">
-              <input type="number" class="produto-caixas" value="${p.caixas}" min="1" style="width:60px;" />
+            <td style="padding: 8px 10px; flex: 1.5; min-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-right: 1px solid #e5e7eb;">${p.produto}</td>
+            <td style="padding: 8px 10px; text-align: center; flex: 1; min-width: 80px; border-right: 1px solid #e5e7eb;">${p.quantidadeKg} kg</td>
+            <td style="padding: 8px 10px; text-align: center; flex: 1; min-width: 80px; border-right: 1px solid #e5e7eb;">
+              <input type="number" class="produto-caixas" value="${p.caixas}" min="1" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box; font-size: 0.9rem;" />
             </td>
-            <td style="padding:8px;text-align:center;">
-              <input type="number" class="produto-valor" value="${p.valor}" min="0.01" step="0.01" style="width:80px;" />
+            <td style="padding: 8px 10px; text-align: center; flex: 1.2; min-width: 100px; border-right: 1px solid #e5e7eb;">
+              <input type="number" class="produto-valor" value="${p.valor}" min="0.01" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box; font-size: 0.9rem;" />
             </td>
-            <td style="padding:8px;text-align:center;color:#059669;font-weight:bold;">R$ ${custoProduto.toFixed(2)}</td>
-            <td style="padding:8px;text-align:center;color:#2563eb;font-weight:bold;">R$ ${valorTotal.toFixed(2)}</td>
-            <td style="padding:8px;text-align:center;">
-              <button type="button" class="btn-remover-produto" data-idx="${idx}" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:1.2em;">🗑️</button>
+            <td style="padding: 8px 10px; text-align: center; color: #059669; font-weight: bold; flex: 1; min-width: 90px; border-right: 1px solid #e5e7eb;">R$ ${custoProduto.toFixed(2)}</td>
+            <td style="padding: 8px 10px; text-align: center; color: #2563eb; font-weight: bold; flex: 1; min-width: 90px; border-right: 1px solid #e5e7eb;">R$ ${valorTotal.toFixed(2)}</td>
+            <td style="padding: 8px 10px; text-align: center; flex: 0 0 50px; min-width: 50px;">
+              <button type="button" class="btn-remover-produto" data-idx="${idx}" style="background: none; border: none; color: #dc2626; cursor: pointer; font-size: 1.2em; padding: 0;">🗑️</button>
             </td>
           </tr>
         `;
       });
-      html += '</tbody></table>';
+      html += '</tbody></table></div>';
       produtosCompraContainer.innerHTML = html;
 
       // Calcular total geral
@@ -883,11 +889,12 @@ const ceasaUI = (() => {
     });
 
     panelBody.innerHTML = `
-      <div class="form-page">
-        <div class="form-header">
-          <h2>Editar compra</h2>
-        </div>
-        <form id="formCompra" class="form-large" data-id="${id}">
+      <div style="width: 100%; height: calc(100vh - 200px); overflow-y: auto;">
+        <div class="form-page">
+          <div class="form-header">
+            <h2>Editar compra</h2>
+          </div>
+          <form id="formCompra" class="form-large" data-id="${id}">
           <!-- 1. Data da compra -->
           <div class="form-row">
             <div class="form-group">
@@ -916,7 +923,9 @@ const ceasaUI = (() => {
           <div class="form-row full">
             <div class="form-group">
               <label>Produto da compra</label>
-              <div id="produtosCompraContainer" style="margin-bottom:12px;"></div>
+              <div style="max-height: 500px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px; margin-bottom: 12px; width: 100%; box-sizing: border-box;">
+                <div id="produtosCompraContainer" style="width: 100%;"></div>
+              </div>
             </div>
           </div>
 
@@ -933,6 +942,7 @@ const ceasaUI = (() => {
             <button type="button" id="btnCancel" class="btn secondary">Cancelar</button>
           </div>
         </form>
+        </div>
       </div>
     `;
 
@@ -954,40 +964,40 @@ const ceasaUI = (() => {
       const custoProduto = produtoAtual.tipo === 'unidade' ? produtoAtual.valor : (produtoAtual.quantidadeKg > 0 ? produtoAtual.valor / produtoAtual.quantidadeKg : 0);
       const valorTotal = produtoAtual.valor * produtoAtual.caixas;
 
-      let html = '<table style="width:100%;border-collapse:collapse;">';
+      let html = '<div style="width: 100%; min-width: 100%; overflow-x: auto;"><table style="width: 100%; border-collapse: separate; border-spacing: 0; table-layout: auto; min-width: 800px;">';
       html += `
         <thead>
-          <tr style="border-bottom:2px solid #ddd;background:#f5f5f5;">
-            <th style="padding:8px;text-align:center;">Tipo</th>
-            <th style="padding:8px;text-align:left;">Produto</th>
-            <th style="padding:8px;text-align:center;">Qtd Cadastrada</th>
-            <th style="padding:8px;text-align:center;">Caixas</th>
-            <th style="padding:8px;text-align:center;">Valor/Caixa</th>
-            <th style="padding:8px;text-align:center;">Custo/Produto</th>
-            <th style="padding:8px;text-align:center;">Valor Total</th>
+          <tr style="border-bottom: 2px solid #ddd; background: #f5f5f5; display: flex; gap: 0; width: 100%;">
+            <th style="padding: 10px; text-align: center; flex: 0 0 60px; min-width: 60px; border-right: 1px solid #e5e7eb;">Tipo</th>
+            <th style="padding: 10px; text-align: left; flex: 1.5; min-width: 150px; border-right: 1px solid #e5e7eb;">Produto</th>
+            <th style="padding: 10px; text-align: center; flex: 1; min-width: 80px; border-right: 1px solid #e5e7eb;">Qtd</th>
+            <th style="padding: 10px; text-align: center; flex: 1; min-width: 80px; border-right: 1px solid #e5e7eb;">Caixas</th>
+            <th style="padding: 10px; text-align: center; flex: 1.2; min-width: 100px; border-right: 1px solid #e5e7eb;">Valor/Cx</th>
+            <th style="padding: 10px; text-align: center; flex: 1; min-width: 90px; border-right: 1px solid #e5e7eb;">Custo/Prod</th>
+            <th style="padding: 10px; text-align: center; flex: 1; min-width: 90px;">Total</th>
           </tr>
         </thead>
         <tbody>
-          <tr style="border-bottom:1px solid #eee;">
-            <td style="padding:8px;text-align:center;">
-              <select id="tipoInput" style="width:100%;padding:4px;">
+          <tr style="border-bottom: 1px solid #eee; display: flex; gap: 0; padding: 8px 0; width: 100%; align-items: center;">
+            <td style="padding: 8px 10px; text-align: center; flex: 0 0 60px; min-width: 60px; border-right: 1px solid #e5e7eb;">
+              <select id="tipoInput" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box; font-size: 0.9rem;">
                 <option value="caixa" ${produtoAtual.tipo === 'caixa' ? 'selected' : ''}>Caixa</option>
                 <option value="unidade" ${produtoAtual.tipo === 'unidade' ? 'selected' : ''}>Unidade</option>
               </select>
             </td>
-            <td style="padding:8px;">${produtoAtual.produto}</td>
-            <td style="padding:8px;text-align:center;">${produtoAtual.quantidadeKg} kg</td>
-            <td style="padding:8px;text-align:center;">
-              <input type="number" id="caixasInput" value="${produtoAtual.caixas}" min="1" style="width:60px;" />
+            <td style="padding: 8px 10px; flex: 1.5; min-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-right: 1px solid #e5e7eb;">${produtoAtual.produto}</td>
+            <td style="padding: 8px 10px; text-align: center; flex: 1; min-width: 80px; border-right: 1px solid #e5e7eb;">${produtoAtual.quantidadeKg} kg</td>
+            <td style="padding: 8px 10px; text-align: center; flex: 1; min-width: 80px; border-right: 1px solid #e5e7eb;">
+              <input type="number" id="caixasInput" value="${produtoAtual.caixas}" min="1" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box; font-size: 0.9rem;" />
             </td>
-            <td style="padding:8px;text-align:center;">
-              <input type="number" id="valorInput" value="${produtoAtual.valor}" min="0.01" step="0.01" style="width:80px;" />
+            <td style="padding: 8px 10px; text-align: center; flex: 1.2; min-width: 100px; border-right: 1px solid #e5e7eb;">
+              <input type="number" id="valorInput" value="${produtoAtual.valor}" min="0.01" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box; font-size: 0.9rem;" />
             </td>
-            <td style="padding:8px;text-align:center;color:#059669;font-weight:bold;">R$ <span id="custoProdutoSpan">${custoProduto.toFixed(2)}</span></td>
-            <td style="padding:8px;text-align:center;color:#2563eb;font-weight:bold;">R$ <span id="valorTotalSpan">${valorTotal.toFixed(2)}</span></td>
+            <td style="padding: 8px 10px; text-align: center; color: #059669; font-weight: bold; flex: 1; min-width: 90px; border-right: 1px solid #e5e7eb;">R$ <span id="custoProdutoSpan">${custoProduto.toFixed(2)}</span></td>
+            <td style="padding: 8px 10px; text-align: center; color: #2563eb; font-weight: bold; flex: 1; min-width: 90px;">R$ <span id="valorTotalSpan">${valorTotal.toFixed(2)}</span></td>
           </tr>
         </tbody>
-      </table>`;
+      </table></div>`;
       produtosCompraContainer.innerHTML = html;
 
       const caixasInput = document.getElementById('caixasInput');

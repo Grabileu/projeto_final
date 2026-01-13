@@ -234,11 +234,12 @@ const fornecedoresUI = (() => {
     if (h2) h2.style.display = 'none';
 
     panelBody.innerHTML = `
-      <div class="form-page">
-        <div class="form-header">
-          <h2>Adicionar fornecedor</h2>
-        </div>
-        <form id="formFornecedor" class="form-large">
+      <div style="width: 100%; height: calc(100vh - 200px); overflow-y: auto;">
+        <div class="form-page">
+          <div class="form-header">
+            <h2>Adicionar fornecedor</h2>
+          </div>
+          <form id="formFornecedor" class="form-large">
           <div class="form-row">
             <div class="form-group">
               <label for="nome">Nome *</label>
@@ -271,6 +272,7 @@ const fornecedoresUI = (() => {
             <button type="button" id="btnCancel" class="btn secondary">Cancelar</button>
           </div>
         </form>
+        </div>
       </div>
     `;
 
@@ -353,11 +355,12 @@ const fornecedoresUI = (() => {
     if (h2) h2.style.display = 'none';
 
     panelBody.innerHTML = `
-      <div class="form-page">
-        <div class="form-header">
-          <h2>Editar fornecedor</h2>
-        </div>
-        <form id="formFornecedor" class="form-large" data-id="${id}">
+      <div style="width: 100%; height: calc(100vh - 200px); overflow-y: auto;">
+        <div class="form-page">
+          <div class="form-header">
+            <h2>Editar fornecedor</h2>
+          </div>
+          <form id="formFornecedor" class="form-large" data-id="${id}">
           <div class="form-row">
             <div class="form-group">
               <label for="nome">Nome *</label>
@@ -390,6 +393,7 @@ const fornecedoresUI = (() => {
             <button type="button" id="btnCancel" class="btn secondary">Cancelar</button>
           </div>
         </form>
+        </div>
       </div>
     `;
 

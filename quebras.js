@@ -304,13 +304,17 @@ const quebrasUI = (() => {
       }
 
       let html = `
-        <div class="filtro-container">
+        <div style="width: 100%; height: calc(100vh - 200px);">
+          <!-- FILTROS NO TOPO -->
           ${renderFiltro()}
-        </div>
+          
+          <!-- ÁREA DE CONTEÚDO ROLÁVEL -->
+          <div id="quebrasContent" style="background: white; padding: 20px; border-radius: 8px; overflow-y: auto; max-height: calc(100vh - 400px);">
       `;
 
       if (quebrasOrdenadas.length === 0) {
         html += '<p class="empty">Nenhuma quebra de caixa registrada para este período. Clique em "Adicionar vale" para registrar.</p>';
+        html += '</div></div>';
         panelBody.innerHTML = html;
         attachFiltroEvents();
         return;
@@ -356,7 +360,7 @@ const quebrasUI = (() => {
       `;
     });
 
-    html += '</ul></div>';
+    html += '</ul></div></div></div>';
     panelBody.innerHTML = html;
 
     attachFiltroEvents();
@@ -470,12 +474,13 @@ const quebrasUI = (() => {
       console.log('📝 Renderizando formulário...');
       
       panelBody.innerHTML = `
-        <div class="form-page">
-          <div class="form-header">
-            <h2>Adicionar vale</h2>
-          </div>
-        
-        <form id="formQuebra" class="form-large">
+        <div style="width: 100%; height: calc(100vh - 200px); overflow-y: auto;">
+          <div class="form-page">
+            <div class="form-header">
+              <h2>Adicionar vale</h2>
+            </div>
+          
+          <form id="formQuebra" class="form-large">
           <div class="form-row">
             <div class="form-group">
               <label for="funcionario">Funcionário *</label>
@@ -560,6 +565,7 @@ const quebrasUI = (() => {
             <button type="button" id="btnCancel" class="btn secondary">Cancelar</button>
           </div>
         </form>
+        </div>
       </div>
     `;
 
@@ -714,12 +720,13 @@ const quebrasUI = (() => {
     });
     
     panelBody.innerHTML = `
-      <div class="form-page">
-        <div class="form-header">
-          <h2>Editar vale</h2>
-        </div>
-        
-        <form id="formQuebra" class="form-large" data-id="${id}">
+      <div style="width: 100%; height: calc(100vh - 200px); overflow-y: auto;">
+        <div class="form-page">
+          <div class="form-header">
+            <h2>Editar vale</h2>
+          </div>
+          
+          <form id="formQuebra" class="form-large" data-id="${id}">
           <div class="form-row">
             <div class="form-group">
               <label for="funcionario">Funcionário *</label>
@@ -796,6 +803,7 @@ const quebrasUI = (() => {
             <button type="button" id="btnCancel" class="btn secondary">Cancelar</button>
           </div>
         </form>
+        </div>
       </div>
     `;
 

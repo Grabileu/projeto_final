@@ -115,6 +115,24 @@ const FuncionariosUI = (() => {
     return numeros.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   };
 
+  const validarCPF = (cpf) => {
+    const somenteNumeros = cpf.replace(/\D/g, '');
+    if (somenteNumeros.length !== 11) return false;
+    if (window.CoreManager?.validators?.cpf) return CoreManager.validators.cpf(somenteNumeros);
+
+    if (/^(\d)\1{10}$/.test(somenteNumeros)) return false;
+    let soma = 0;
+    for (let i = 0; i < 9; i++) soma += parseInt(somenteNumeros.charAt(i), 10) * (10 - i);
+    let resto = (soma * 10) % 11;
+    if (resto === 10) resto = 0;
+    if (resto !== parseInt(somenteNumeros.charAt(9), 10)) return false;
+    soma = 0;
+    for (let i = 0; i < 10; i++) soma += parseInt(somenteNumeros.charAt(i), 10) * (11 - i);
+    resto = (soma * 10) % 11;
+    if (resto === 10) resto = 0;
+    return resto === parseInt(somenteNumeros.charAt(10), 10);
+  };
+
   const renderLista = async () => {
     const panelBody = document.querySelector('.panel-body');
     if (!panelBody) {
@@ -220,12 +238,13 @@ const FuncionariosUI = (() => {
     if (h2) h2.style.display = 'none';
     
     panelBody.innerHTML = `
-      <div class="form-page">
-        <div class="form-header">
-          <h2>Criar novo funcionário</h2>
-        </div>
-        
-        <form id="formFuncionario" class="form-large">
+      <div style="width: 100%; height: calc(100vh - 200px); overflow-y: auto;">
+        <div class="form-page">
+          <div class="form-header">
+            <h2>Criar novo funcionário</h2>
+          </div>
+          
+          <form id="formFuncionario" class="form-large">
           <div class="form-row">
             <div class="form-group">
               <label for="nome">Nome *</label>
@@ -276,6 +295,7 @@ const FuncionariosUI = (() => {
             <button type="button" id="btnCancel" class="btn secondary">Cancelar</button>
           </div>
         </form>
+        </div>
       </div>
     `;
 
@@ -302,8 +322,8 @@ const FuncionariosUI = (() => {
         return;
       }
 
-      if (cpf.length !== 11) {
-        alert('CPF inválido! Digite 11 números.');
+      if (!validarCPF(cpf)) {
+        alert('CPF inválido! Verifique os dígitos.');
         return;
       }
 
@@ -327,12 +347,13 @@ const FuncionariosUI = (() => {
     if (h2) h2.style.display = 'none';
     
     panelBody.innerHTML = `
-      <div class="form-page">
-        <div class="form-header">
-          <h2>Editar funcionário</h2>
-        </div>
-        
-        <form id="formFuncionario" class="form-large" data-id="${id}">
+      <div style="width: 100%; height: calc(100vh - 200px); overflow-y: auto;">
+        <div class="form-page">
+          <div class="form-header">
+            <h2>Editar funcionário</h2>
+          </div>
+          
+          <form id="formFuncionario" class="form-large" data-id="${id}">
           <div class="form-row">
             <div class="form-group">
               <label for="nome">Nome *</label>
@@ -377,6 +398,7 @@ const FuncionariosUI = (() => {
             <button type="button" id="btnCancel" class="btn secondary">Cancelar</button>
           </div>
         </form>
+        </div>
       </div>
     `;
 
@@ -403,8 +425,8 @@ const FuncionariosUI = (() => {
         return;
       }
 
-      if (cpf.length !== 11) {
-        alert('CPF inválido! Digite 11 números.');
+      if (!validarCPF(cpf)) {
+        alert('CPF inválido! Verifique os dígitos.');
         return;
       }
 

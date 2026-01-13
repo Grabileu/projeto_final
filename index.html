@@ -125,8 +125,13 @@
       <main class="content" id="content">
         <section class="panel">
           <div class="panel-header">
-            <h2>Visão geral</h2>
+            <h2 class="panel-title">Visão geral</h2>
             <div class="actions">
+              <select id="roleSelector" class="role-select" aria-label="Selecionar perfil">
+                <option value="admin">ADMIN</option>
+                <option value="operador">OPERADOR</option>
+                <option value="consulta">CONSULTA</option>
+              </select>
               <button class="btn primary" id="btnAction">Criar funcionário</button>
             </div>
           </div>
@@ -229,6 +234,11 @@
 
       const navItems = document.querySelectorAll('.nav-item');
 
+      const setPanelTitle = (text) => {
+        const h2 = document.querySelector('.panel-header h2');
+        if (h2) h2.textContent = text || 'Visão geral';
+      };
+
       navItems.forEach(item => {
         const btn = item.querySelector('.nav-btn');
 
@@ -253,7 +263,10 @@
           item.classList.add('active');
 
           const label = item.querySelector('.nav-label') ? item.querySelector('.nav-label').textContent.trim() : '';
-          if (label) document.querySelector('.page-title').textContent = label;
+          if (label) {
+            document.querySelector('.page-title').textContent = label;
+            setPanelTitle(label);
+          }
 
           const target = item.getAttribute('data-target');
           if (target) {
@@ -271,6 +284,7 @@
 
           const label = sb.textContent.trim();
           document.querySelector('.page-title').textContent = label;
+          setPanelTitle(label);
 
           const target = sb.parentElement.getAttribute('data-target');
           currentSection = target;
@@ -318,10 +332,60 @@
         });
       }
 
+      const roleSelector = document.getElementById('roleSelector');
+      const roleStoreKey = 'app-role';
+      const rolePermissions = {
+        admin: { canAdd: true, canEdit: true, canDelete: true },
+        operador: { canAdd: true, canEdit: true, canDelete: false },
+        consulta: { canAdd: false, canEdit: false, canDelete: false }
+      };
+      let currentRole = localStorage.getItem(roleStoreKey) || 'admin';
+      if (roleSelector) {
+        roleSelector.value = currentRole;
+        roleSelector.addEventListener('change', () => {
+          currentRole = roleSelector.value;
+          localStorage.setItem(roleStoreKey, currentRole);
+          aplicarPermissoesUI();
+          if (currentSection) atualizarSecao(currentSection);
+        });
+      }
+
+      const canAdd = (secao) => {
+        if (currentRole === 'admin') return true;
+        if (currentRole === 'operador') return !secao.startsWith('relatorios');
+        return false; // consulta
+      };
+
+      const aplicarPermissoesUI = () => {
+        const btn = document.getElementById('btnAction');
+        const actionsDiv = document.querySelector('.panel-header .actions');
+        if (!btn || !actionsDiv) return;
+        if (!currentSection || currentSection === 'dashboard' || currentSection.startsWith('relatorios-')) {
+          btn.style.display = 'none';
+          return;
+        }
+        btn.style.display = canAdd(currentSection) ? 'block' : 'none';
+      };
+
+      const sectionTitles = {
+        dashboard: 'Dashboard',
+        funcionario: 'Funcionários',
+        faltas: 'Faltas',
+        quebras: 'Quebras de caixa',
+        'ceasa-compras': 'Compras',
+        'ceasa-fornecedores': 'Fornecedores',
+        'relatorios-quebras': 'Relatório: Quebras de caixa',
+        'relatorios-faltas-atestados': 'Relatório: Faltas e Atestados',
+        'relatorios-ceasa': 'Relatório: Ceasa',
+        'relatorios-funcionarios': 'Relatório: Funcionários'
+      };
+
       const atualizarSecao = async (secao) => {
         console.log('🔄 atualizarSecao chamada com:', secao);
         currentSection = secao;
         console.log('📍 currentSection atualizado para:', currentSection);
+
+        setPanelTitle(sectionTitles[secao] || 'Visão geral');
         
         const btn = document.getElementById('btnAction');
         const actionsDiv = document.querySelector('.panel-header .actions');
@@ -348,27 +412,27 @@
             await dashboardUI.renderDashboard();
           } else if (secao === 'funcionario') {
             btn.textContent = 'Criar funcionário';
-            btn.style.display = 'block';
+            btn.style.display = canAdd(secao) ? 'block' : 'none';
             if (actionsDiv) actionsDiv.style.display = 'block';
             await FuncionariosUI.renderLista();
           } else if (secao === 'faltas') {
             btn.textContent = 'Adicionar falta';
-            btn.style.display = 'block';
+            btn.style.display = canAdd(secao) ? 'block' : 'none';
             if (actionsDiv) actionsDiv.style.display = 'block';
             await FaltasUI.renderLista();
           } else if (secao === 'quebras') {
             btn.textContent = 'Adicionar vale';
-            btn.style.display = 'block';
+            btn.style.display = canAdd(secao) ? 'block' : 'none';
             if (actionsDiv) actionsDiv.style.display = 'block';
             await quebrasUI.renderLista();
           } else if (secao === 'ceasa-compras') {
             btn.textContent = 'Adicionar compra';
-            btn.style.display = 'block';
+            btn.style.display = canAdd(secao) ? 'block' : 'none';
             if (actionsDiv) actionsDiv.style.display = 'block';
             await ceasaUI.renderLista();
           } else if (secao === 'ceasa-fornecedores') {
             btn.textContent = 'Adicionar fornecedor';
-            btn.style.display = 'block';
+            btn.style.display = canAdd(secao) ? 'block' : 'none';
             if (actionsDiv) actionsDiv.style.display = 'block';
             await fornecedoresUI.renderLista();
           } else if (secao === 'relatorios-quebras') {
@@ -399,10 +463,14 @@
             actions.style.display = 'block';
           }
         }
+        aplicarPermissoesUI();
       };
 
       // Inicializar com o dashboard
       await atualizarSecao('dashboard');
+
+      // Aplicar permissões iniciais
+      aplicarPermissoesUI();
 
       // Monitorar se o botão desaparece e restaurá-lo
       const panelHeader = document.querySelector('.panel-header');
@@ -417,7 +485,7 @@
               newBtn.id = 'btnAction';
               newBtn.className = 'btn primary';
               newBtn.textContent = 'Adicionar';
-              newBtn.style.display = 'block';
+              newBtn.style.display = canAdd(currentSection) ? 'block' : 'none';
               newBtn.style.visibility = 'visible';
               actions.innerHTML = '';
               actions.appendChild(newBtn);
